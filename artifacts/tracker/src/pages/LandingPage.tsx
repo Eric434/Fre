@@ -1,20 +1,8 @@
 import { useRef, useState } from "react";
 import {
-  Search,
-  MapPin,
-  Bell,
-  TrendingUp,
-  ArrowUp,
-  ChevronRight,
-  Zap,
-  Clock,
-  Shield,
-  Package,
-  CheckCircle2,
-  ExternalLink,
+  Search, MapPin, Bell, TrendingUp, ArrowUp,
+  ChevronRight, Zap, Clock, Shield, ExternalLink,
 } from "lucide-react";
-
-const DEMO_CODES = ["TSL-2847-XK", "TSL-9031-MZ", "TSL-5512-BR"];
 
 const FEATURES = [
   {
@@ -68,35 +56,22 @@ const STEPS = [
   {
     n: "04",
     title: "Get notified",
-    desc: "Enter your email and receive push alerts the moment your package status changes.",
+    desc: "Enter your email and receive alerts the moment your package status changes.",
   },
 ];
 
-const DEMO_RESULT = {
-  code: "TSL-2847-XK",
-  status: "In Transit",
-  eta: "Today, 4–7 PM",
-  from: "San Jose, CA",
-  to: "San Francisco, CA",
-  events: [
-    { time: "10:42 AM", label: "Out for delivery", done: true },
-    { time: "07:18 AM", label: "Arrived at facility", done: true },
-    { time: "Yesterday", label: "Departed warehouse", done: true },
-    { time: "2 days ago", label: "Order dispatched", done: true },
-  ],
-};
-
 interface Props {
   onTrack: (code: string) => void;
+  onAdmin: () => void;
 }
 
-export default function LandingPage({ onTrack }: Props) {
+export default function LandingPage({ onTrack, onAdmin }: Props) {
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const topRef = useRef<HTMLDivElement>(null);
 
-  const handleSubmit = (code?: string) => {
-    const val = (code ?? query).trim();
+  const handleSubmit = () => {
+    const val = query.trim().toUpperCase();
     if (val) onTrack(val);
   };
 
@@ -118,7 +93,7 @@ export default function LandingPage({ onTrack }: Props) {
           <a href="#features" className="text-xs text-white/40 hover:text-white/70 transition-colors">Features</a>
           <a href="#how-it-works" className="text-xs text-white/40 hover:text-white/70 transition-colors">How it works</a>
           <button
-            onClick={() => onTrack("TSL-ADMIN")}
+            onClick={onAdmin}
             className="text-xs px-4 py-1.5 border border-white/10 rounded-full text-white/50 hover:text-white hover:border-white/30 transition-all"
           >
             Admin Portal
@@ -128,7 +103,6 @@ export default function LandingPage({ onTrack }: Props) {
 
       {/* ─── HERO ─── */}
       <section className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-24 pb-16 overflow-hidden">
-        {/* Background glows */}
         <div className="hero-glow w-[700px] h-[500px] bg-blue-600/10 animate-glow-blue top-20 left-1/2 -translate-x-1/2" />
         <div className="hero-glow w-[300px] h-[300px] bg-red-600/8 bottom-40 left-1/4" />
         <div className="hero-glow w-[250px] h-[250px] bg-blue-500/6 bottom-20 right-1/4" />
@@ -143,7 +117,6 @@ export default function LandingPage({ onTrack }: Props) {
           <span className="text-[11px] text-blue-300 tracking-widest uppercase font-medium">
             Live Tracking Active
           </span>
-          <span className="text-[10px] text-blue-400/50">· 4,281 packages in transit</span>
         </div>
 
         {/* Headline */}
@@ -163,7 +136,7 @@ export default function LandingPage({ onTrack }: Props) {
         {/* Search bar */}
         <div className="relative w-full max-w-xl animate-slide-up" style={{ animationDelay: "0.3s" }}>
           <div className={`flex items-center gap-3 bg-[#111] border rounded-xl px-4 py-3.5 transition-all duration-300 ${
-            focused ? "border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.12)]" : "border-white/10 shadow-[0_0_0px_transparent]"
+            focused ? "border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.12)]" : "border-white/10"
           }`}>
             <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
             <input
@@ -173,31 +146,17 @@ export default function LandingPage({ onTrack }: Props) {
               onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Enter tracking code — e.g. TSL-2847-XK"
+              placeholder="Enter your tracking code"
               className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-mono"
             />
             <button
-              onClick={() => handleSubmit()}
+              onClick={handleSubmit}
               disabled={!query.trim()}
               className="flex-shrink-0 px-5 py-2 rounded-lg text-sm font-medium transition-all
                 bg-red-600 hover:bg-red-500 text-white disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Track
             </button>
-          </div>
-
-          {/* Quick demo links */}
-          <div className="flex items-center gap-2 mt-3 justify-center flex-wrap">
-            <span className="text-[10px] text-white/25 tracking-wider">DEMO CODES:</span>
-            {DEMO_CODES.map((code) => (
-              <button
-                key={code}
-                onClick={() => handleSubmit(code)}
-                className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-white/4 hover:bg-blue-600/15 border border-white/8 hover:border-blue-500/30 text-white/40 hover:text-blue-300 transition-all"
-              >
-                {code}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -263,13 +222,10 @@ export default function LandingPage({ onTrack }: Props) {
             <p className="text-[10px] text-blue-400/60 tracking-[0.3em] uppercase mb-3">Process</p>
             <h2 className="text-3xl font-bold text-white/90">Simple as four steps.</h2>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-            {/* Steps */}
             <div className="space-y-3">
               {STEPS.map(({ n, title, desc }) => (
-                <div key={n}
-                  className="step-card flex gap-4 p-5 rounded-xl border border-white/6 bg-white/2">
+                <div key={n} className="step-card flex gap-4 p-5 rounded-xl border border-white/6 bg-white/2">
                   <span className="text-2xl font-bold text-white/8 font-mono flex-shrink-0 w-10 text-right leading-tight">
                     {n}
                   </span>
@@ -281,67 +237,30 @@ export default function LandingPage({ onTrack }: Props) {
               ))}
             </div>
 
-            {/* Live demo card */}
-            <div className="rounded-2xl border border-white/10 bg-[#111] overflow-hidden shadow-2xl">
-              <div className="px-5 py-4 border-b border-white/6 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Package className="w-3.5 h-3.5 text-red-400" />
-                  <span className="text-xs font-mono text-white/60">{DEMO_RESULT.code}</span>
-                </div>
-                <span className="text-[10px] px-2.5 py-1 rounded-full bg-blue-600/15 border border-blue-500/25 text-blue-300">
-                  {DEMO_RESULT.status}
-                </span>
+            {/* Info card replacing demo card */}
+            <div className="rounded-2xl border border-white/10 bg-[#111] overflow-hidden shadow-2xl p-8 flex flex-col items-center justify-center text-center gap-6">
+              <div className="w-14 h-14 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center">
+                <svg viewBox="0 0 100 120" className="w-7 h-8 text-red-500" fill="none">
+                  <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
+                    stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
               </div>
-
-              <div className="p-5">
-                {/* ETA row */}
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/5">
-                  <div>
-                    <div className="text-[9px] text-white/25 uppercase tracking-wider mb-1">Estimated Arrival</div>
-                    <div className="text-sm font-semibold text-white/90">{DEMO_RESULT.eta}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-[9px] text-white/25 uppercase tracking-wider mb-1">Route</div>
-                    <div className="text-xs text-white/60">
-                      {DEMO_RESULT.from} → {DEMO_RESULT.to}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Progress bar */}
-                <div className="mb-5">
-                  <div className="flex justify-between text-[9px] text-white/25 mb-1.5">
-                    <span>Dispatched</span>
-                    <span>In Transit</span>
-                    <span>Delivered</span>
-                  </div>
-                  <div className="h-1 bg-white/6 rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-red-600 to-blue-500 rounded-full"
-                      style={{ width: "65%" }} />
-                  </div>
-                </div>
-
-                {/* Events */}
-                <div className="space-y-2.5">
-                  {DEMO_RESULT.events.map((ev, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                      <div className="flex-1 text-xs text-white/60">{ev.label}</div>
-                      <span className="text-[9px] text-white/25 font-mono">{ev.time}</span>
-                    </div>
-                  ))}
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white/90 mb-2">Track your shipment</h3>
+                <p className="text-xs text-white/35 leading-relaxed max-w-xs">
+                  Enter the tracking code from your confirmation email above to see your package's live location on the map.
+                </p>
               </div>
-
-              <div className="px-5 py-4 border-t border-white/5">
-                <button
-                  onClick={() => onTrack(DEMO_RESULT.code)}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all group"
-                >
-                  Load this demo live
-                  <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  topRef.current?.scrollIntoView({ behavior: "smooth" });
+                  setTimeout(() => topRef.current?.querySelector<HTMLInputElement>("input")?.focus(), 400);
+                }}
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all group"
+              >
+                Enter tracking code
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </button>
             </div>
           </div>
         </div>
@@ -355,14 +274,12 @@ export default function LandingPage({ onTrack }: Props) {
             <span className="gradient-text">Start tracking now.</span>
           </h2>
           <p className="text-white/35 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
-            No sign-up required. Just enter your tracking code and get instant results.
+            Enter your tracking code and get instant, real-time results.
           </p>
           <button
             onClick={() => {
               topRef.current?.scrollIntoView({ behavior: "smooth" });
-              topRef.current
-                ?.querySelector<HTMLInputElement>("input")
-                ?.focus();
+              topRef.current?.querySelector<HTMLInputElement>("input")?.focus();
             }}
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition-all shadow-lg shadow-red-900/30 group"
           >
@@ -389,7 +306,7 @@ export default function LandingPage({ onTrack }: Props) {
             <a href="#features" className="text-[10px] text-white/25 hover:text-white/50 transition-colors">Features</a>
             <a href="#how-it-works" className="text-[10px] text-white/25 hover:text-white/50 transition-colors">How it works</a>
             <button
-              onClick={() => onTrack("TSL-ADMIN")}
+              onClick={onAdmin}
               className="flex items-center gap-1.5 text-[10px] text-white/25 hover:text-white/50 transition-colors"
             >
               Admin Portal <ExternalLink className="w-2.5 h-2.5" />
