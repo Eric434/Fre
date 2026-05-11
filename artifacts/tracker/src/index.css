@@ -30,22 +30,22 @@
 }
 
 :root {
-  --background: 0 0% 5%;
+  --background: 0 0% 4%;
   --foreground: 0 0% 96%;
-  --border: 0 0% 14%;
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 96%;
+  --border: 0 0% 12%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 92%;
   --primary: 0 84% 47%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 90%;
-  --muted: 0 0% 11%;
-  --muted-foreground: 0 0% 55%;
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 0 0% 85%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 50%;
   --accent: 0 84% 47%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 47%;
   --destructive-foreground: 0 0% 100%;
-  --input: 0 0% 14%;
+  --input: 0 0% 12%;
   --ring: 0 84% 47%;
   --radius: 0.375rem;
   --app-font-sans: 'Inter', sans-serif;
@@ -53,71 +53,114 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
+  * { @apply border-border; }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
-    background-color: hsl(0 0% 5%);
-    color: hsl(0 0% 96%);
+    @apply font-sans antialiased;
+    background-color: #0a0a0a;
+    color: #f5f5f5;
   }
 }
 
-/* Leaflet dark map overrides */
-.leaflet-container {
-  background: #0a0a0a !important;
-  font-family: 'Inter', sans-serif;
+/* ---- Animations ---- */
+@keyframes pulse-live {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.95); }
+}
+@keyframes ping-live {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes glow-blue {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes pulse-red {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
+  50% { box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+}
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-4px); opacity: 1; }
 }
 
-.leaflet-tile {
-  filter: invert(1) hue-rotate(180deg) saturate(0.6) brightness(0.85);
+.animate-pulse-live { animation: pulse-live 2s ease-in-out infinite; }
+.animate-glow-blue { animation: glow-blue 3s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.6s ease-out both; }
+.animate-fade-in { animation: fade-in 0.4s ease-out both; }
+
+.gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, #dc2626 40%, #ffffff 70%, #3b82f6 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradient-shift 5s ease infinite;
 }
 
+.hero-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  pointer-events: none;
+}
+
+/* Leaflet dark map */
+.leaflet-container { background: #080808 !important; font-family: 'Inter', sans-serif; }
+.leaflet-tile { filter: invert(1) hue-rotate(180deg) saturate(0.5) brightness(0.8); }
 .leaflet-control-zoom a {
   background: #141414 !important;
   color: #e0e0e0 !important;
-  border-color: #2a2a2a !important;
+  border-color: #222 !important;
 }
-
-.leaflet-control-zoom a:hover {
-  background: #1e1e1e !important;
-  color: #ffffff !important;
-}
-
+.leaflet-control-zoom a:hover { background: #1e1e1e !important; }
 .leaflet-control-attribution {
-  background: rgba(10,10,10,0.85) !important;
-  color: #555 !important;
+  background: rgba(8,8,8,0.9) !important;
+  color: #444 !important;
   font-size: 9px !important;
 }
-
-.leaflet-control-attribution a {
-  color: #777 !important;
-}
-
+.leaflet-control-attribution a { color: #666 !important; }
 .leaflet-popup-content-wrapper {
-  background: #141414 !important;
-  color: #e0e0e0 !important;
-  border: 1px solid #2a2a2a !important;
-  border-radius: 6px !important;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.6) !important;
+  background: #111 !important;
+  color: #e5e5e5 !important;
+  border: 1px solid #222 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
 }
-
-.leaflet-popup-tip {
-  background: #141414 !important;
-}
-
-/* Pulse animation for active vehicle */
-@keyframes pulse-red {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.6); }
-  50% { box-shadow: 0 0 0 8px rgba(220, 38, 38, 0); }
-}
-
-.vehicle-marker-pulse {
-  animation: pulse-red 2s infinite;
-}
+.leaflet-popup-tip { background: #111 !important; }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #0d0d0d; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #222; border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: #dc2626; }
+
+/* Card hover effect */
+.feature-card {
+  transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.feature-card:hover {
+  border-color: rgba(59,130,246,0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(59,130,246,0.08);
+}
+
+.step-card {
+  transition: border-color 0.3s, background 0.3s;
+}
+.step-card:hover {
+  border-color: rgba(220,38,38,0.3) !important;
+  background: rgba(220,38,38,0.04) !important;
+}

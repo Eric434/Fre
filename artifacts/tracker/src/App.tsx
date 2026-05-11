@@ -1,22 +1,14 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
-import TrackingDashboard from "@/pages/TrackingDashboard";
-import NotFound from "@/pages/not-found";
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={TrackingDashboard} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+import { useState } from "react";
+import LandingPage from "@/pages/LandingPage";
+import TrackingResult from "@/pages/TrackingResult";
 
 function App() {
-  return (
-    <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-      <Router />
-    </WouterRouter>
-  );
+  const [trackingCode, setTrackingCode] = useState<string | null>(null);
+
+  if (trackingCode) {
+    return <TrackingResult code={trackingCode} onBack={() => setTrackingCode(null)} />;
+  }
+  return <LandingPage onTrack={setTrackingCode} />;
 }
 
 export default App;
