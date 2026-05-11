@@ -19,7 +19,10 @@ import {
   Pause,
   RotateCcw,
   Navigation,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { subscribeToAlerts } from "@/lib/api";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -635,7 +638,7 @@ export default function TrackingResult({ code, onBack }: Props) {
         {/* ── Right panel — Notifications ── */}
         <aside className="w-60 bg-[#0c0c0c] border-l border-white/6 flex flex-col flex-shrink-0">
           {/* Email alerts */}
-          <NotificationPanel pkg={pkg} events={pkg.events} />
+          <NotificationPanel pkg={pkg} events={pkg.events} trackingCode={code} />
 
           {/* Actions */}
           <div className="p-4 border-t border-white/6 space-y-2">
@@ -671,22 +674,54 @@ export default function TrackingResult({ code, onBack }: Props) {
   );
 }
 
-// ─── Notification sub-component (keeps parent clean) ──────────────────────────
+// ─── Notification sub-component ───────────────────────────────────────────────
 
-function NotificationPanel({ events }: { pkg: PkgData; events: PkgData["events"] }) {
+function NotificationPanel({
+  pkg,
+  events,
+  trackingCode,
+}: {
+  pkg: PkgData;
+  events: PkgData["events"];
+  trackingCode: string;
+}) {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
   const [showInput, setShowInput] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+
+  const handleSubscribe = async () => {
+    if (!email.includes("@")) return;
+    setLoading(true);
+    setApiError(null);
+    const result = await subscribeToAlerts({
+      email,
+      trackingCode,
+      status: pkg.status,
+      eta: pkg.eta,
+      from: pkg.from,
+      to: pkg.to,
+    });
+    setLoading(false);
+    if (result.success) {
+      setSubscribed(true);
+    } else {
+      setApiError(result.error ?? "Something went wrong");
+    }
+  };
 
   return (
     <>
       <div className="p-4 border-b border-white/6 flex-shrink-0">
         <div className="text-[9px] text-white/25 uppercase tracking-widest mb-4">Notifications</div>
+
         {!subscribed ? (
           <>
             <p className="text-[10px] text-white/30 leading-relaxed mb-4">
               Get notified the moment your package status changes.
             </p>
+
             {!showInput ? (
               <button
                 onClick={() => setShowInput(true)}
@@ -699,16 +734,33 @@ function NotificationPanel({ events }: { pkg: PkgData; events: PkgData["events"]
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setApiError(null); }}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubscribe()}
                   placeholder="your@email.com"
-                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/20 outline-none focus:border-red-600/40"
+                  disabled={loading}
+                  className="w-full bg-white/4 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-white/20 outline-none focus:border-red-600/40 disabled:opacity-50"
                 />
+
+                {apiError && (
+                  <div className="flex items-start gap-1.5 text-[10px] text-red-400">
+                    <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                    <span>{apiError}</span>
+                  </div>
+                )}
+
                 <button
-                  onClick={() => setSubscribed(true)}
-                  disabled={!email.includes("@")}
-                  className="w-full py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white text-xs font-medium transition-all"
+                  onClick={handleSubscribe}
+                  disabled={!email.includes("@") || loading}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white text-xs font-medium transition-all"
                 >
-                  Subscribe
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Sending…
+                    </>
+                  ) : (
+                    "Subscribe"
+                  )}
                 </button>
               </div>
             )}
@@ -717,9 +769,10 @@ function NotificationPanel({ events }: { pkg: PkgData; events: PkgData["events"]
           <div className="text-center py-1">
             <CheckCircle2 className="w-6 h-6 text-green-400 mx-auto mb-2" />
             <p className="text-[10px] text-green-400 font-medium">Alerts enabled!</p>
-            <p className="text-[9px] text-white/25 mt-1 break-all">{email}</p>
+            <p className="text-[9px] text-white/35 mt-1 break-all">{email}</p>
+            <p className="text-[9px] text-white/20 mt-1">Confirmation email sent.</p>
             <button
-              onClick={() => { setSubscribed(false); setShowInput(false); setEmail(""); }}
+              onClick={() => { setSubscribed(false); setShowInput(false); setEmail(""); setApiError(null); }}
               className="mt-3 flex items-center gap-1 text-[9px] text-white/18 hover:text-white/40 transition-colors mx-auto"
             >
               <BellOff className="w-2.5 h-2.5" /> Unsubscribe
