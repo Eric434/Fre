@@ -29,10 +29,55 @@ function interpolateRoute(waypoints: [number, number][], n: number): [number, nu
   });
 }
 
-function vehicleMarkerHtml(size = 20) {
-  return `<div style="position:relative;width:${size}px;height:${size}px;">
-    <div style="position:absolute;inset:0;background:rgba(220,38,38,0.25);border-radius:50%;animation:ping-live 1.6s cubic-bezier(0,0,0.2,1) infinite;"></div>
-    <div style="position:absolute;inset:3px;background:#dc2626;border:2px solid #ff6666;border-radius:50%;box-shadow:0 0 10px rgba(220,38,38,0.9);"></div>
+function getBearing(from: [number, number], to: [number, number]): number {
+  const dLng = to[1] - from[1];
+  const dLat = to[0] - from[0];
+  return ((Math.atan2(dLng, dLat) * 180) / Math.PI + 360) % 360;
+}
+
+function vehicleMarkerHtml(moving: boolean, bearing: number): string {
+  const glow = moving
+    ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:rgba(220,38,38,0.22);animation:ping-live 1.4s ease-in-out infinite;pointer-events:none;"></div>
+       <div style="position:absolute;inset:-2px;border-radius:50%;background:rgba(220,38,38,0.10);pointer-events:none;"></div>`
+    : "";
+  const headlightOpacity = moving ? "1" : "0.35";
+  const bodyColor = moving ? "#dc2626" : "#b91c1c";
+
+  return `<div style="position:relative;width:28px;height:44px;transform:rotate(${bearing}deg);transform-origin:14px 22px;">
+    ${glow}
+    <svg viewBox="0 0 28 44" width="28" height="44" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));">
+      <!-- body -->
+      <rect x="4" y="8" width="20" height="28" rx="5" fill="${bodyColor}"/>
+      <!-- cabin roof -->
+      <rect x="7" y="14" width="14" height="13" rx="3" fill="#991b1b"/>
+      <!-- front windshield -->
+      <rect x="8" y="11" width="12" height="4" rx="1.5" fill="rgba(147,210,255,0.55)"/>
+      <!-- rear windshield -->
+      <rect x="8" y="29" width="12" height="4" rx="1.5" fill="rgba(147,210,255,0.35)"/>
+      <!-- front-left wheel -->
+      <rect x="1" y="10" width="5" height="8" rx="2" fill="#111"/>
+      <rect x="2.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
+      <!-- front-right wheel -->
+      <rect x="22" y="10" width="5" height="8" rx="2" fill="#111"/>
+      <rect x="23.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
+      <!-- rear-left wheel -->
+      <rect x="1" y="26" width="5" height="8" rx="2" fill="#111"/>
+      <rect x="2.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
+      <!-- rear-right wheel -->
+      <rect x="22" y="26" width="5" height="8" rx="2" fill="#111"/>
+      <rect x="23.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
+      <!-- headlights -->
+      <rect x="7" y="8" width="5" height="2.5" rx="1" fill="#fde68a" opacity="${headlightOpacity}"/>
+      <rect x="16" y="8" width="5" height="2.5" rx="1" fill="#fde68a" opacity="${headlightOpacity}"/>
+      <!-- tail lights -->
+      <rect x="7" y="33" width="5" height="2.5" rx="1" fill="#ef4444" opacity="0.85"/>
+      <rect x="16" y="33" width="5" height="2.5" rx="1" fill="#ef4444" opacity="0.85"/>
+      <!-- center hood line -->
+      <line x1="14" y1="8" x2="14" y2="14" stroke="#991b1b" stroke-width="0.8" opacity="0.6"/>
+      <!-- Tesla T emblem -->
+      <rect x="11.5" y="6" width="5" height="1.5" rx="0.7" fill="white" opacity="0.55"/>
+      <rect x="13.5" y="7.5" width="1" height="2" rx="0.5" fill="white" opacity="0.55"/>
+    </svg>
   </div>`;
 }
 
@@ -337,14 +382,23 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     return () => clearInterval(t);
   }, [playing, posIdx, code]);
 
-  // Update map overlays
+  // Update map overlays + rotate car to face direction of travel
   useEffect(() => {
     const pos = fullPath[posIdx];
     if (!pos) return;
     vehicleMarkerRef.current?.setLatLng(pos);
     donePolyRef.current?.setLatLngs(fullPath.slice(0, posIdx + 1));
     remainPolyRef.current?.setLatLngs(fullPath.slice(posIdx));
-  }, [posIdx]);
+
+    // Recalculate bearing and refresh icon
+    const next = fullPath[Math.min(posIdx + 1, TOTAL - 1)];
+    const prev = fullPath[Math.max(posIdx - 1, 0)];
+    const bearing = posIdx < TOTAL - 1 ? getBearing(pos, next) : getBearing(prev, pos);
+    const isMoving = playing && posIdx < TOTAL - 1;
+    vehicleMarkerRef.current?.setIcon(
+      L.divIcon({ html: vehicleMarkerHtml(isMoving, bearing), className: "", iconSize: [28, 44], iconAnchor: [14, 22] })
+    );
+  }, [posIdx, playing]);
 
   // Pan map
   useEffect(() => {
@@ -379,8 +433,15 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
       icon: L.divIcon({ html: `<div style="width:13px;height:13px;background:#3b82f6;border:2px solid #60a5fa;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.7);"></div>`, className: "", iconSize: [13, 13], iconAnchor: [6.5, 6.5] }),
     }).addTo(map).bindPopup(`<b>Destination</b><br>${pkg.destination}`);
 
+    const initNext = fullPath[Math.min(startIdx + 1, TOTAL - 1)];
+    const initBearing = startIdx < TOTAL - 1 ? getBearing(initPos, initNext) : 0;
     vehicleMarkerRef.current = L.marker(initPos, {
-      icon: L.divIcon({ html: vehicleMarkerHtml(22), className: "", iconSize: [22, 22], iconAnchor: [11, 11] }),
+      icon: L.divIcon({
+        html: vehicleMarkerHtml(pkg.status !== "Delivered", initBearing),
+        className: "",
+        iconSize: [28, 44],
+        iconAnchor: [14, 22],
+      }),
       zIndexOffset: 1000,
     }).addTo(map).bindPopup(`<b>${pkg.status}</b>`);
 
