@@ -38,6 +38,18 @@ export async function fetchPackage(code: string): Promise<Package | null> {
   }
 }
 
+export async function notifyDelivered(trackingCode: string): Promise<void> {
+  try {
+    await fetch(`${API}/notify/delivered`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ trackingCode }),
+    });
+  } catch {
+    // fire-and-forget
+  }
+}
+
 export async function subscribeToAlerts(payload: {
   email: string;
   trackingCode: string;
