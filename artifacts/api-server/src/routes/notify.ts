@@ -3,7 +3,11 @@ import { Resend } from "resend";
 import pool from "../lib/db";
 
 const router: IRouter = Router();
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+function getResend() {
+  if (!process.env.RESEND_API_KEY) return null;
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 // ─── Shared email template builder ───────────────────────────────────────────
 
@@ -147,14 +151,16 @@ router.post("/notify/subscribe", async (req, res) => {
       bodyText: "We'll send you an email the moment your package status changes — including when it's out for delivery and when it arrives.",
     });
 
-    const { error } = await resend.emails.send({
-      from: "TeslaTrack <onboarding@resend.dev>",
-      to: [email],
-      subject,
-      html,
-    });
-
-    if (error) { res.status(500).json({ error: "Failed to send email", detail: error.message }); return; }
+    const resend = getResend();
+    if (resend) {
+      const { error } = await resend.emails.send({
+        from: "TeslaTrack <onboarding@resend.dev>",
+        to: [email],
+        subject,
+        html,
+      });
+      if (error) { res.status(500).json({ error: "Failed to send email", detail: error.message }); return; }
+    }
     res.json({ success: true });
   } catch (err) {
     console.error("Subscribe error:", err);
@@ -195,9 +201,12 @@ router.post("/notify/delivered", async (req, res) => {
 
     const emails = subsRes.rows.map((r) => r.email);
     let sent = 0;
-    for (const to of emails) {
-      const { error } = await resend.emails.send({ from: "TeslaTrack <onboarding@resend.dev>", to: [to], subject, html });
-      if (!error) sent++;
+    const resend = getResend();
+    if (resend) {
+      for (const to of emails) {
+        const { error } = await resend.emails.send({ from: "TeslaTrack <onboarding@resend.dev>", to: [to], subject, html });
+        if (!error) sent++;
+      }
     }
 
     // Update package status to Delivered in DB
