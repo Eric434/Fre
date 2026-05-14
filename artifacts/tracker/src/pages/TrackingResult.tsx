@@ -4,7 +4,7 @@ import {
   ArrowLeft, Package, CheckCircle2, Circle, MapPin, Clock,
   Bell, BellOff, Play, Pause, RotateCcw, Navigation,
   Loader2, AlertCircle, Wifi, ChevronRight, Gauge, Battery,
-  Download, Share2, Map as MapIcon, List,
+  X, Menu, List,
 } from "lucide-react";
 import { fetchPackage, subscribeToAlerts, notifyDelivered, type Package as Pkg } from "@/lib/api";
 
@@ -46,35 +46,19 @@ function vehicleMarkerHtml(moving: boolean, bearing: number): string {
   return `<div style="position:relative;width:28px;height:44px;transform:rotate(${bearing}deg);transform-origin:14px 22px;">
     ${glow}
     <svg viewBox="0 0 28 44" width="28" height="44" xmlns="http://www.w3.org/2000/svg" style="position:relative;z-index:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.7));">
-      <!-- body -->
       <rect x="4" y="8" width="20" height="28" rx="5" fill="${bodyColor}"/>
-      <!-- cabin roof -->
       <rect x="7" y="14" width="14" height="13" rx="3" fill="#991b1b"/>
-      <!-- front windshield -->
       <rect x="8" y="11" width="12" height="4" rx="1.5" fill="rgba(147,210,255,0.55)"/>
-      <!-- rear windshield -->
       <rect x="8" y="29" width="12" height="4" rx="1.5" fill="rgba(147,210,255,0.35)"/>
-      <!-- front-left wheel -->
-      <rect x="1" y="10" width="5" height="8" rx="2" fill="#111"/>
-      <rect x="2.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
-      <!-- front-right wheel -->
-      <rect x="22" y="10" width="5" height="8" rx="2" fill="#111"/>
-      <rect x="23.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
-      <!-- rear-left wheel -->
-      <rect x="1" y="26" width="5" height="8" rx="2" fill="#111"/>
-      <rect x="2.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
-      <!-- rear-right wheel -->
-      <rect x="22" y="26" width="5" height="8" rx="2" fill="#111"/>
-      <rect x="23.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
-      <!-- headlights -->
+      <rect x="1" y="10" width="5" height="8" rx="2" fill="#111"/><rect x="2.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
+      <rect x="22" y="10" width="5" height="8" rx="2" fill="#111"/><rect x="23.5" y="11.5" width="2" height="5" rx="1" fill="#333"/>
+      <rect x="1" y="26" width="5" height="8" rx="2" fill="#111"/><rect x="2.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
+      <rect x="22" y="26" width="5" height="8" rx="2" fill="#111"/><rect x="23.5" y="27.5" width="2" height="5" rx="1" fill="#333"/>
       <rect x="7" y="8" width="5" height="2.5" rx="1" fill="#fde68a" opacity="${headlightOpacity}"/>
       <rect x="16" y="8" width="5" height="2.5" rx="1" fill="#fde68a" opacity="${headlightOpacity}"/>
-      <!-- tail lights -->
       <rect x="7" y="33" width="5" height="2.5" rx="1" fill="#ef4444" opacity="0.85"/>
       <rect x="16" y="33" width="5" height="2.5" rx="1" fill="#ef4444" opacity="0.85"/>
-      <!-- center hood line -->
       <line x1="14" y1="8" x2="14" y2="14" stroke="#991b1b" stroke-width="0.8" opacity="0.6"/>
-      <!-- Tesla T emblem -->
       <rect x="11.5" y="6" width="5" height="1.5" rx="0.7" fill="white" opacity="0.55"/>
       <rect x="13.5" y="7.5" width="1" height="2" rx="0.5" fill="white" opacity="0.55"/>
     </svg>
@@ -84,7 +68,7 @@ function vehicleMarkerHtml(moving: boolean, bearing: number): string {
 const TOTAL = 200;
 const STEP_MS = 1800;
 
-type MobileTab = "map" | "timeline" | "alerts";
+type DrawerTab = "timeline" | "alerts";
 
 interface Props { code: string; onBack: () => void; onAdmin: () => void; }
 
@@ -118,7 +102,7 @@ function NotFoundScreen({ code, onBack }: { code: string; onBack: () => void }) 
   );
 }
 
-// ─── Shell (async fetch wrapper) ──────────────────────────────────────────────
+// ─── Shell ────────────────────────────────────────────────────────────────────
 
 export default function TrackingResult({ code, onBack, onAdmin }: Props) {
   const [pkg, setPkg] = useState<Pkg | null | "loading">("loading");
@@ -128,7 +112,7 @@ export default function TrackingResult({ code, onBack, onAdmin }: Props) {
   return <TrackingView pkg={pkg} code={code} onBack={onBack} onAdmin={onAdmin} />;
 }
 
-// ─── Timeline panel content ───────────────────────────────────────────────────
+// ─── Timeline panel ───────────────────────────────────────────────────────────
 
 function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGradient }: {
   pkg: Pkg; code: string; progress: number; simSpeed: number; secsAgo: number;
@@ -136,7 +120,6 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGrad
 }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {/* ETA + route */}
       <div className="p-5 border-b border-white/6 flex-shrink-0">
         <div className="mb-3">
           <div className="text-[9px] text-white/25 uppercase tracking-widest mb-1">Estimated Arrival</div>
@@ -162,7 +145,6 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGrad
         </div>
       </div>
 
-      {/* Live mini-stats */}
       <div className="p-4 border-b border-white/6 grid grid-cols-3 gap-2 flex-shrink-0">
         {[
           { icon: Navigation, val: `${simSpeed}`, sub: "km/h", color: "text-red-500/70" },
@@ -177,7 +159,6 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGrad
         ))}
       </div>
 
-      {/* Package meta */}
       <div className="p-4 border-b border-white/6 grid grid-cols-2 gap-3 flex-shrink-0">
         {[
           { label: "Carrier", value: pkg.carrier },
@@ -192,7 +173,6 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGrad
         ))}
       </div>
 
-      {/* Timeline */}
       <div className="flex-1 p-5">
         <div className="text-[9px] text-white/25 uppercase tracking-widest mb-4">Event Timeline</div>
         <div className="relative">
@@ -224,7 +204,7 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, getProgressGrad
   );
 }
 
-// ─── Notifications panel content ──────────────────────────────────────────────
+// ─── Notifications panel ──────────────────────────────────────────────────────
 
 function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
   pkg: Pkg; trackingCode: string; simSpeed: number; secsAgo: number; playing: boolean;
@@ -248,7 +228,6 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
 
   return (
     <div className="flex flex-col h-full overflow-y-auto">
-      {/* Email subscribe */}
       <div className="p-4 border-b border-white/6 flex-shrink-0">
         <div className="text-[9px] text-white/25 uppercase tracking-widest mb-4">Notifications</div>
         {!subscribed ? (
@@ -294,7 +273,6 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
         )}
       </div>
 
-      {/* Recent alerts */}
       <div className="flex-1 p-4 overflow-y-auto">
         <div className="text-[9px] text-white/25 uppercase tracking-widest mb-3">Recent Alerts</div>
         <div className="space-y-2">
@@ -307,7 +285,6 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
         </div>
       </div>
 
-      {/* Live stats */}
       <div className="p-4 border-t border-white/6 flex-shrink-0">
         <div className="text-[9px] text-white/20 uppercase tracking-widest mb-3">Live Stats</div>
         <div className="grid grid-cols-2 gap-2">
@@ -319,27 +296,17 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="bg-white/3 rounded-lg p-2 text-center">
               <Icon className="w-3 h-3 text-white/18 mx-auto mb-1" />
-              <div className="text-[10px] font-light text-white/55 tabular-nums">{value}</div>
-              <div className="text-[8px] text-white/18">{label}</div>
+              <div className="text-[10px] font-mono text-white/55">{value}</div>
+              <div className="text-[8px] text-white/20">{label}</div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Actions */}
-      <div className="p-4 border-t border-white/6 space-y-2 flex-shrink-0">
-        <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-white/6 hover:border-white/12 bg-white/2 hover:bg-white/4 text-xs text-white/40 hover:text-white/70 transition-all">
-          <Download className="w-3.5 h-3.5" /> Download receipt
-        </button>
-        <button className="w-full flex items-center gap-2 px-3 py-2 rounded-lg border border-white/6 hover:border-white/12 bg-white/2 hover:bg-white/4 text-xs text-white/40 hover:text-white/70 transition-all">
-          <Share2 className="w-3.5 h-3.5" /> Share tracking
-        </button>
       </div>
     </div>
   );
 }
 
-// ─── Main tracking view ───────────────────────────────────────────────────────
+// ─── Main TrackingView ────────────────────────────────────────────────────────
 
 function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; onBack: () => void; onAdmin: () => void }) {
   const route = pkg.route as [number, number][];
@@ -350,7 +317,8 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
   const [playing, setPlaying] = useState(pkg.status !== "Delivered");
   const [secsAgo, setSecsAgo] = useState(0);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [mobileTab, setMobileTab] = useState<MobileTab>("map");
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<DrawerTab>("timeline");
   const deliveryFiredRef = useRef(false);
 
   const mapRef = useRef<HTMLDivElement>(null);
@@ -359,13 +327,11 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
   const donePolyRef = useRef<L.Polyline | null>(null);
   const remainPolyRef = useRef<L.Polyline | null>(null);
 
-  // Clock
   useEffect(() => {
     const t = setInterval(() => { setCurrentTime(new Date()); setSecsAgo((s) => s + 1); }, 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Advance position + auto-fire delivery email
   useEffect(() => {
     if (!playing || posIdx >= TOTAL - 1) return;
     const t = setInterval(() => {
@@ -382,15 +348,12 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     return () => clearInterval(t);
   }, [playing, posIdx, code]);
 
-  // Update map overlays + rotate car to face direction of travel
   useEffect(() => {
     const pos = fullPath[posIdx];
     if (!pos) return;
     vehicleMarkerRef.current?.setLatLng(pos);
     donePolyRef.current?.setLatLngs(fullPath.slice(0, posIdx + 1));
     remainPolyRef.current?.setLatLngs(fullPath.slice(posIdx));
-
-    // Recalculate bearing and refresh icon
     const next = fullPath[Math.min(posIdx + 1, TOTAL - 1)];
     const prev = fullPath[Math.max(posIdx - 1, 0)];
     const bearing = posIdx < TOTAL - 1 ? getBearing(pos, next) : getBearing(prev, pos);
@@ -400,21 +363,19 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     );
   }, [posIdx, playing]);
 
-  // Pan map
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const pos = fullPath[posIdx];
     if (pos) mapInstanceRef.current.panTo(pos, { animate: true, duration: 1.5, easeLinearity: 0.1 });
   }, [posIdx]);
 
-  // Invalidate map size when tab switches to map
+  // Invalidate map size when drawer opens/closes (map area changes)
   useEffect(() => {
-    if (mobileTab === "map" && mapInstanceRef.current) {
-      setTimeout(() => mapInstanceRef.current?.invalidateSize(), 50);
+    if (mapInstanceRef.current) {
+      setTimeout(() => mapInstanceRef.current?.invalidateSize(), 300);
     }
-  }, [mobileTab]);
+  }, [drawerOpen]);
 
-  // Init map
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
     const initPos = fullPath[startIdx];
@@ -436,12 +397,7 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     const initNext = fullPath[Math.min(startIdx + 1, TOTAL - 1)];
     const initBearing = startIdx < TOTAL - 1 ? getBearing(initPos, initNext) : 0;
     vehicleMarkerRef.current = L.marker(initPos, {
-      icon: L.divIcon({
-        html: vehicleMarkerHtml(pkg.status !== "Delivered", initBearing),
-        className: "",
-        iconSize: [28, 44],
-        iconAnchor: [14, 22],
-      }),
+      icon: L.divIcon({ html: vehicleMarkerHtml(pkg.status !== "Delivered", initBearing), className: "", iconSize: [28, 44], iconAnchor: [14, 22] }),
       zIndexOffset: 1000,
     }).addTo(map).bindPopup(`<b>${pkg.status}</b>`);
 
@@ -476,203 +432,242 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
   };
 
   return (
-    <div className="flex flex-col bg-[#0a0a0a] text-white overflow-hidden animate-fade-in" style={{ height: "100dvh" }}>
+    <div className="relative bg-[#0a0a0a] text-white overflow-hidden animate-fade-in" style={{ height: "100dvh", width: "100vw" }}>
 
-      {/* ══ HEADER ══════════════════════════════════════════════════════════════ */}
-      <header className="flex-shrink-0 border-b border-white/8 bg-[#0a0a0a]/95 backdrop-blur-sm z-20">
+      {/* ══ FULL-SCREEN MAP ══════════════════════════════════════════════════════ */}
+      <div ref={mapRef} className="absolute inset-0 z-0" />
 
-        {/* Top row — always visible */}
-        <div className="flex items-center justify-between px-4 py-2.5">
-          {/* Left: back + logo */}
-          <div className="flex items-center gap-3 min-w-0">
-            <button onClick={onBack}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/70 transition-colors flex-shrink-0 group">
-              <ArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              <span className="hidden sm:inline">Back</span>
-            </button>
-            <div className="w-px h-4 bg-white/10 flex-shrink-0" />
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <svg viewBox="0 0 100 120" className="w-4 h-5 text-red-600 flex-shrink-0" fill="none">
+      {/* ══ FLOATING HEADER ═════════════════════════════════════════════════════ */}
+      <div className="absolute top-0 left-0 right-0 z-20 pointer-events-none">
+        <div className="mx-3 mt-3 pointer-events-auto">
+          <div className="flex items-center justify-between bg-black/80 backdrop-blur-md border border-white/10 rounded-2xl px-4 py-2.5 shadow-xl">
+            {/* Left: back + logo + code */}
+            <div className="flex items-center gap-3 min-w-0">
+              <button onClick={onBack}
+                className="flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors flex-shrink-0 group">
+                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+              <div className="w-px h-4 bg-white/10 flex-shrink-0" />
+              <svg viewBox="0 0 100 120" className="w-3.5 h-4 text-red-500 flex-shrink-0" fill="none">
                 <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
                   stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span className="text-xs font-semibold tracking-widest uppercase text-white/70 hidden sm:inline">
-                Tesla<span className="text-red-500">Track</span>
-              </span>
+              <code className="text-[11px] font-mono text-white/50 truncate">{code}</code>
             </div>
-            <div className="w-px h-4 bg-white/10 flex-shrink-0 hidden sm:block" />
-            <code className="text-xs font-mono text-white/40 truncate max-w-[120px] sm:max-w-none">{code}</code>
-          </div>
 
-          {/* Right: status + clock + admin */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className={`flex items-center gap-1.5 text-[10px] px-2 py-1 rounded-full border ${getStatusColor()}`}>
-              {!isDelivered && playing && (
-                <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"
-                  style={{ animation: "pulse-live 1.5s ease-in-out infinite" }} />
-              )}
-              <span className="hidden xs:inline">{isDelivered ? "Delivered" : pkg.status}</span>
-              <span className="xs:hidden">{isDelivered ? "✓" : "●"}</span>
-            </div>
-            <div className="hidden md:flex items-center gap-1.5 text-white/25">
-              <Wifi className="w-3 h-3 text-green-400" />
-              <span className="text-xs font-mono tabular-nums">
-                {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            {/* Right: status pill + clock */}
+            <div className="flex items-center gap-2.5 flex-shrink-0">
+              <div className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border ${getStatusColor()}`}>
+                {!isDelivered && playing && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-current flex-shrink-0"
+                    style={{ animation: "pulse-live 1.5s ease-in-out infinite" }} />
+                )}
+                <span>{isDelivered ? "Delivered" : pkg.status}</span>
+              </div>
+              <span className="text-[10px] font-mono text-white/30 tabular-nums hidden sm:inline">
+                {currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
               </span>
             </div>
-            <button onClick={onAdmin}
-              className="text-[10px] text-white/20 hover:text-white/40 transition-colors px-2 py-1 rounded border border-white/6 hover:border-white/12">
-              Admin
+          </div>
+        </div>
+      </div>
+
+      {/* ══ FLOATING SIDE MENU BUTTON ════════════════════════════════════════════ */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 z-30 pointer-events-auto">
+        <div className="flex flex-col gap-0 mr-0">
+          {/* Menu toggle */}
+          <button
+            onClick={() => setDrawerOpen((o) => !o)}
+            className="group flex flex-col items-center justify-center gap-1.5 w-10 py-5 bg-black/85 backdrop-blur-md border border-white/10 border-r-0 rounded-l-2xl shadow-xl transition-all hover:bg-black/95 hover:border-white/20"
+            style={{ writingMode: "vertical-rl" }}
+          >
+            {drawerOpen
+              ? <X className="w-4 h-4 text-white/60 group-hover:text-white/90 transition-colors" style={{ writingMode: "horizontal-tb" }} />
+              : <Menu className="w-4 h-4 text-white/60 group-hover:text-white/90 transition-colors" style={{ writingMode: "horizontal-tb" }} />
+            }
+          </button>
+
+          {/* Timeline shortcut */}
+          <button
+            onClick={() => { setDrawerTab("timeline"); setDrawerOpen(true); }}
+            className={`group flex flex-col items-center justify-center gap-1 w-10 py-4 backdrop-blur-md border border-white/10 border-r-0 border-t-0 shadow-xl transition-all ${
+              drawerOpen && drawerTab === "timeline"
+                ? "bg-red-600/25 border-red-600/30 text-red-400"
+                : "bg-black/75 hover:bg-black/90 text-white/30 hover:text-white/70"
+            }`}
+          >
+            <List className="w-3.5 h-3.5" style={{ writingMode: "horizontal-tb" }} />
+            <span className="text-[8px] tracking-wider" style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}>Timeline</span>
+          </button>
+
+          {/* Alerts shortcut */}
+          <button
+            onClick={() => { setDrawerTab("alerts"); setDrawerOpen(true); }}
+            className={`group flex flex-col items-center justify-center gap-1 w-10 py-4 backdrop-blur-md border border-white/10 border-r-0 border-t-0 rounded-bl-2xl shadow-xl transition-all ${
+              drawerOpen && drawerTab === "alerts"
+                ? "bg-red-600/25 border-red-600/30 text-red-400"
+                : "bg-black/75 hover:bg-black/90 text-white/30 hover:text-white/70"
+            }`}
+          >
+            <Bell className="w-3.5 h-3.5" style={{ writingMode: "horizontal-tb" }} />
+            <span className="text-[8px] tracking-wider" style={{ writingMode: "vertical-rl", textOrientation: "mixed" }}>Alerts</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ══ SLIDE-IN DRAWER ══════════════════════════════════════════════════════ */}
+      {/* Backdrop */}
+      {drawerOpen && (
+        <div
+          className="absolute inset-0 z-[25] bg-black/30 backdrop-blur-[1px]"
+          onClick={() => setDrawerOpen(false)}
+        />
+      )}
+
+      {/* Drawer panel */}
+      <div
+        className="absolute top-0 right-0 bottom-0 z-30 w-80 max-w-[85vw] bg-[#0d0d0d] border-l border-white/8 flex flex-col shadow-2xl transition-transform duration-300 ease-in-out"
+        style={{ transform: drawerOpen ? "translateX(0)" : "translateX(100%)" }}
+      >
+        {/* Drawer header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/8 flex-shrink-0">
+          <div className="flex items-center gap-1 bg-white/4 rounded-xl border border-white/8 p-0.5">
+            <button
+              onClick={() => setDrawerTab("timeline")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                drawerTab === "timeline"
+                  ? "bg-red-600/20 text-red-400 border border-red-600/30"
+                  : "text-white/35 hover:text-white/60"
+              }`}
+            >
+              <List className="w-3 h-3" /> Timeline
+            </button>
+            <button
+              onClick={() => setDrawerTab("alerts")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
+                drawerTab === "alerts"
+                  ? "bg-red-600/20 text-red-400 border border-red-600/30"
+                  : "text-white/35 hover:text-white/60"
+              }`}
+            >
+              <Bell className="w-3 h-3" /> Alerts
+            </button>
+          </div>
+          <button
+            onClick={() => setDrawerOpen(false)}
+            className="w-7 h-7 flex items-center justify-center rounded-lg bg-white/4 hover:bg-white/10 border border-white/8 text-white/40 hover:text-white/70 transition-all"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Drawer content */}
+        <div className="flex-1 overflow-hidden">
+          {drawerTab === "timeline" && (
+            <TimelinePanel
+              pkg={pkg} code={code} progress={progress} simSpeed={simSpeed}
+              secsAgo={secsAgo} getProgressGradient={getProgressGradient}
+            />
+          )}
+          {drawerTab === "alerts" && (
+            <NotificationsPanel
+              pkg={pkg} trackingCode={code} simSpeed={simSpeed}
+              secsAgo={secsAgo} playing={playing}
+            />
+          )}
+        </div>
+
+        {/* Admin link at bottom */}
+        <div className="px-5 py-3 border-t border-white/6 flex-shrink-0 flex items-center justify-between">
+          <span className="text-[9px] text-white/15 uppercase tracking-widest">TeslaTrack</span>
+          <button onClick={onAdmin}
+            className="text-[9px] text-white/20 hover:text-white/45 transition-colors px-2 py-1 rounded border border-white/6 hover:border-white/15">
+            Admin
+          </button>
+        </div>
+      </div>
+
+      {/* ══ MAP OVERLAYS ════════════════════════════════════════════════════════ */}
+
+      {/* Live badge — top left */}
+      <div className="absolute top-20 left-3 z-20">
+        <div className="bg-black/80 backdrop-blur border border-white/8 rounded-xl px-3 py-1.5 flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0"
+            style={{
+              boxShadow: playing && !isDelivered ? "0 0 8px rgba(220,38,38,0.9)" : "none",
+              animation: playing && !isDelivered ? "pulse-live 1.4s ease-in-out infinite" : "none",
+            }} />
+          <span className="text-xs text-white/55">
+            {isDelivered ? "Delivered" : playing ? `Live · ${simSpeed} km/h` : "Paused"}
+          </span>
+        </div>
+      </div>
+
+      {/* Play/Pause/Reset controls — left side below live badge */}
+      {!isDelivered && (
+        <div className="absolute top-32 left-3 z-20">
+          <div className="flex flex-col gap-1 bg-black/80 backdrop-blur border border-white/8 rounded-xl overflow-hidden">
+            <button onClick={() => setPlaying((p) => !p)}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-white/8 transition-colors text-white/50 hover:text-white/80">
+              {playing ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+              <span className="text-[10px]">{playing ? "Pause" : "Play"}</span>
+            </button>
+            <div className="h-px bg-white/6" />
+            <button onClick={handleReset}
+              className="flex items-center gap-2 px-3 py-2 hover:bg-white/8 transition-colors text-white/50 hover:text-white/80">
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span className="text-[10px]">Reset</span>
             </button>
           </div>
         </div>
+      )}
 
-        {/* Controls row — visible when on map tab or on desktop */}
-        {pkg.status !== "Delivered" && (
-          <div className={`px-4 pb-2 flex items-center gap-2 ${mobileTab !== "map" ? "hidden md:flex" : "flex"}`}>
-            <div className="flex items-center gap-1 bg-white/4 rounded-lg border border-white/8 p-0.5">
-              <button onClick={() => setPlaying((p) => !p)}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-white/8 transition-colors text-white/50 hover:text-white/80">
-                {playing ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                <span className="text-[10px]">{playing ? "Pause" : "Play"}</span>
-              </button>
-              <button onClick={handleReset}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md hover:bg-white/8 transition-colors text-white/50 hover:text-white/80">
-                <RotateCcw className="w-3 h-3" />
-                <span className="text-[10px]">Reset</span>
-              </button>
-            </div>
-            <div className="h-4 w-px bg-white/8" />
-            <div className="flex items-center gap-3 text-[10px] text-white/30">
-              <span className="flex items-center gap-1">
-                <Navigation className="w-3 h-3 text-red-400/60" />{simSpeed} km/h
-              </span>
-              <span>{progress}% complete</span>
-              <span className="hidden sm:inline">ETA: {pkg.eta}</span>
-            </div>
-          </div>
-        )}
-      </header>
-
-      {/* ══ BODY ════════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-1 overflow-hidden">
-
-        {/* ─ Desktop left panel (timeline) — hidden on mobile ─ */}
-        <aside className="hidden md:flex w-72 bg-[#0c0c0c] border-r border-white/6 flex-col flex-shrink-0">
-          <TimelinePanel pkg={pkg} code={code} progress={progress} simSpeed={simSpeed}
-            secsAgo={secsAgo} getProgressGradient={getProgressGradient} />
-        </aside>
-
-        {/* ─ Map — always rendered, hidden by display when mobile non-map tab ─ */}
-        <div className={`flex-1 relative ${mobileTab !== "map" ? "hidden md:block" : "block"}`}>
-          <div ref={mapRef} className="w-full h-full" />
-
-          {/* Live badge */}
-          <div className="absolute top-3 left-3 z-10">
-            <div className="bg-black/80 backdrop-blur border border-white/8 rounded-lg px-3 py-1.5 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-600 flex-shrink-0"
-                style={{
-                  boxShadow: playing && !isDelivered ? "0 0 8px rgba(220,38,38,0.9)" : "none",
-                  animation: playing && !isDelivered ? "pulse-live 1.4s ease-in-out infinite" : "none",
-                }} />
-              <span className="text-xs text-white/55">
-                {isDelivered ? "Delivered" : playing ? `Live · ${simSpeed} km/h` : "Paused"}
-              </span>
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="absolute top-3 right-3 z-10 hidden sm:flex items-center gap-2">
-            <div className="bg-black/80 backdrop-blur border border-white/8 rounded-lg px-3 py-1.5 flex items-center gap-2">
-              <div className="w-5 h-0.5 bg-red-600 rounded" />
-              <span className="text-[9px] text-white/35">Done</span>
-            </div>
-            <div className="bg-black/80 backdrop-blur border border-white/8 rounded-lg px-3 py-1.5 flex items-center gap-2">
-              <div className="w-5 h-0.5 rounded" style={{ backgroundImage: "repeating-linear-gradient(to right,#3b82f6 0,#3b82f6 4px,transparent 4px,transparent 8px)" }} />
-              <span className="text-[9px] text-white/35">Remaining</span>
-            </div>
-          </div>
-
-          {/* Progress ticker */}
-          {!isDelivered && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-max max-w-[calc(100vw-2rem)]">
-              <div className="bg-black/85 backdrop-blur border border-white/8 rounded-xl px-4 py-2 flex items-center gap-3 flex-wrap justify-center">
-                {[
-                  { label: "Progress", value: `${progress}%`, cls: "text-white/80" },
-                  { label: "Speed", value: `${simSpeed} km/h`, cls: "text-red-400" },
-                  { label: "Updated", value: `${secsAgo}s ago`, cls: "text-white/80" },
-                  { label: "ETA", value: pkg.eta, cls: "text-white/80" },
-                ].map(({ label, value, cls }, i, arr) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <div className="text-center">
-                      <div className="text-[9px] text-white/25 mb-0.5">{label}</div>
-                      <div className={`text-xs font-mono font-semibold ${cls}`}>{value}</div>
-                    </div>
-                    {i < arr.length - 1 && <div className="w-px h-6 bg-white/8 hidden sm:block" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Delivered banner */}
-          {isDelivered && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10">
-              <div className="bg-green-600/15 backdrop-blur border border-green-500/30 rounded-xl px-5 py-2.5 flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
-                <div>
-                  <div className="text-sm font-semibold text-green-300">Package Delivered</div>
-                  <div className="text-[10px] text-green-400/60">{pkg.eta}</div>
-                </div>
-              </div>
-            </div>
-          )}
+      {/* Route legend — top left below controls */}
+      <div className="absolute top-[22rem] left-3 z-20 hidden sm:flex flex-col gap-1.5">
+        <div className="bg-black/75 backdrop-blur border border-white/8 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+          <div className="w-4 h-0.5 bg-red-600 rounded" />
+          <span className="text-[9px] text-white/30">Completed</span>
         </div>
-
-        {/* ─ Mobile: Timeline tab content ─ */}
-        {mobileTab === "timeline" && (
-          <div className="md:hidden flex-1 bg-[#0c0c0c] overflow-hidden">
-            <TimelinePanel pkg={pkg} code={code} progress={progress} simSpeed={simSpeed}
-              secsAgo={secsAgo} getProgressGradient={getProgressGradient} />
-          </div>
-        )}
-
-        {/* ─ Mobile: Alerts tab content ─ */}
-        {mobileTab === "alerts" && (
-          <div className="md:hidden flex-1 bg-[#0c0c0c] overflow-hidden">
-            <NotificationsPanel pkg={pkg} trackingCode={code} simSpeed={simSpeed}
-              secsAgo={secsAgo} playing={playing} />
-          </div>
-        )}
-
-        {/* ─ Desktop right panel (notifications) — hidden on mobile ─ */}
-        <aside className="hidden md:flex w-60 bg-[#0c0c0c] border-l border-white/6 flex-col flex-shrink-0">
-          <NotificationsPanel pkg={pkg} trackingCode={code} simSpeed={simSpeed}
-            secsAgo={secsAgo} playing={playing} />
-        </aside>
+        <div className="bg-black/75 backdrop-blur border border-white/8 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
+          <div className="w-4 h-0.5 rounded" style={{ backgroundImage: "repeating-linear-gradient(to right,#3b82f6 0,#3b82f6 4px,transparent 4px,transparent 8px)" }} />
+          <span className="text-[9px] text-white/30">Remaining</span>
+        </div>
       </div>
 
-      {/* ══ MOBILE BOTTOM TAB BAR ════════════════════════════════════════════════ */}
-      <nav className="md:hidden flex-shrink-0 flex items-stretch border-t border-white/8 bg-[#0a0a0a]/95 backdrop-blur-sm">
-        {([
-          { id: "map", label: "Map", icon: MapIcon },
-          { id: "timeline", label: "Timeline", icon: List },
-          { id: "alerts", label: "Alerts", icon: Bell },
-        ] as { id: MobileTab; label: string; icon: typeof MapIcon }[]).map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setMobileTab(id)}
-            className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-colors ${
-              mobileTab === id
-                ? "text-red-400 border-t-2 border-red-600 -mt-px"
-                : "text-white/25 hover:text-white/50"
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            <span className="text-[9px] tracking-wide">{label}</span>
-          </button>
-        ))}
-      </nav>
+      {/* Progress ticker — bottom center */}
+      {!isDelivered && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-max max-w-[calc(100vw-6rem)]">
+          <div className="bg-black/85 backdrop-blur border border-white/10 rounded-2xl px-4 py-2.5 flex items-center gap-3 flex-wrap justify-center shadow-xl">
+            {[
+              { label: "Progress", value: `${progress}%`, cls: "text-white/80" },
+              { label: "Speed", value: `${simSpeed} km/h`, cls: "text-red-400" },
+              { label: "Updated", value: `${secsAgo}s ago`, cls: "text-white/80" },
+              { label: "ETA", value: pkg.eta, cls: "text-white/80" },
+            ].map(({ label, value, cls }, i, arr) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className="text-center">
+                  <div className="text-[9px] text-white/25 mb-0.5">{label}</div>
+                  <div className={`text-xs font-mono font-semibold ${cls}`}>{value}</div>
+                </div>
+                {i < arr.length - 1 && <div className="w-px h-5 bg-white/8" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Delivered banner */}
+      {isDelivered && (
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20">
+          <div className="bg-green-600/15 backdrop-blur border border-green-500/30 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-xl">
+            <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
+            <div>
+              <div className="text-sm font-semibold text-green-300">Package Delivered</div>
+              <div className="text-[10px] text-green-400/60">{pkg.eta}</div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
