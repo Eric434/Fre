@@ -86,22 +86,19 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
     <div className="min-h-screen bg-[#0a0a0a] text-white" ref={topRef}>
 
       {/* ─── NAV ─── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-8 py-4 border-b border-white/6 bg-[#0a0a0a]/90 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <svg viewBox="0 0 100 120" className="w-5 h-6 text-red-600" fill="none">
-            <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
-              stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b border-white/6 bg-[#0a0a0a]/92 backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-7 h-7 object-contain" />
           <span className="text-sm font-semibold tracking-widest uppercase text-white/90">
             Tesla<span className="text-red-500">Track</span>
           </span>
         </div>
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex items-center gap-3 md:gap-6">
           <a href="#features" className="hidden sm:block text-xs text-white/40 hover:text-white/70 transition-colors">Features</a>
           <a href="#how-it-works" className="hidden sm:block text-xs text-white/40 hover:text-white/70 transition-colors">How it works</a>
           <button onClick={onAdmin}
-            className="text-xs px-4 py-1.5 border border-white/10 rounded-full text-white/50 hover:text-white hover:border-white/30 transition-all">
-            Admin Portal
+            className="text-xs px-3 md:px-4 py-1.5 border border-white/10 rounded-full text-white/50 hover:text-white hover:border-white/30 transition-all whitespace-nowrap">
+            Admin
           </button>
         </div>
       </nav>
@@ -168,17 +165,17 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
 
       {/* ─── STATS BAR ─── */}
       <section className="border-y border-white/6 bg-[#0d0d0d]">
-        <div className="max-w-4xl mx-auto px-6 py-6 grid grid-cols-3 divide-x divide-white/6">
+        <div className="max-w-4xl mx-auto px-4 py-4 md:py-6 grid grid-cols-3 divide-x divide-white/6">
           {[
             { icon: Zap, value: "99.9%", label: "Uptime SLA" },
             { icon: Clock, value: "15s", label: "Refresh Rate" },
-            { icon: Shield, value: "24 / 7", label: "Live Support" },
+            { icon: Shield, value: "24/7", label: "Live Support" },
           ].map(({ icon: Icon, value, label }) => (
-            <div key={label} className="flex items-center justify-center gap-3 px-6">
-              <Icon className="w-4 h-4 text-red-500/70" />
-              <div>
-                <div className="text-lg font-semibold text-white/90">{value}</div>
-                <div className="text-[10px] text-white/30 uppercase tracking-wider">{label}</div>
+            <div key={label} className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-3 px-2 sm:px-6">
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500/70" />
+              <div className="text-center sm:text-left">
+                <div className="text-base sm:text-lg font-semibold text-white/90">{value}</div>
+                <div className="text-[8px] sm:text-[10px] text-white/30 uppercase tracking-wider">{label}</div>
               </div>
             </div>
           ))}
@@ -333,10 +330,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
       <footer className="border-t border-white/6 bg-[#0a0a0a]">
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <svg viewBox="0 0 100 120" className="w-4 h-5 text-red-600" fill="none">
-              <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
-                stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-5 h-5 object-contain opacity-60" />
             <span className="text-xs font-semibold tracking-widest uppercase text-white/50">
               Tesla<span className="text-red-500/70">Track</span>
             </span>

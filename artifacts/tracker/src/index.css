@@ -95,11 +95,16 @@
   0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
   40% { transform: translateY(-4px); opacity: 1; }
 }
+@keyframes logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 .animate-pulse-live { animation: pulse-live 2s ease-in-out infinite; }
 .animate-glow-blue { animation: glow-blue 3s ease-in-out infinite; }
 .animate-slide-up { animation: slide-up 0.6s ease-out both; }
 .animate-fade-in { animation: fade-in 0.4s ease-out both; }
+.logo-spin { animation: logo-spin 10s linear infinite; }
 
 .gradient-text {
   background: linear-gradient(135deg, #ffffff 0%, #dc2626 40%, #ffffff 70%, #3b82f6 100%);
@@ -117,9 +122,8 @@
   pointer-events: none;
 }
 
-/* Leaflet dark map */
+/* Leaflet dark map — CartoDB dark_all tiles, no filter needed */
 .leaflet-container { background: #080808 !important; font-family: 'Inter', sans-serif; }
-.leaflet-tile { filter: invert(1) hue-rotate(180deg) saturate(0.5) brightness(0.8); }
 .leaflet-control-zoom a {
   background: #141414 !important;
   color: #e0e0e0 !important;

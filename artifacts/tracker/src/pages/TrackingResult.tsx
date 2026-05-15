@@ -725,11 +725,8 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               </button>
               <div className="w-px h-4 bg-white/10 flex-shrink-0" />
-              <svg viewBox="0 0 100 120" className="w-3.5 h-4 text-red-500 flex-shrink-0" fill="none">
-                <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
-                  stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <code className="text-[11px] font-mono text-white/50 truncate">{code}</code>
+              <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-5 h-5 object-contain flex-shrink-0" />
+              <code className="text-[11px] font-mono text-white/50 truncate max-w-[120px] sm:max-w-none">{code}</code>
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
               <div className={`flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full border ${getStatusColor()}`}>
@@ -899,30 +896,36 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
 
       {/* Bottom telemetry bar */}
       {!isDelivered && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 w-max max-w-[calc(100vw-6rem)]">
-          <div className="bg-black/90 backdrop-blur border border-white/10 rounded-2xl px-5 py-3 flex items-center gap-4 shadow-2xl">
-            {[
-              { label: "Progress", value: `${progress}%`, hi: false },
-              { label: "Speed", value: `${simSpeed} km/h`, hi: true },
-              { label: "Heading", value: `${bearingToCardinal(bearing)} ${Math.round(bearing)}°`, hi: false },
-              { label: "Last Ping", value: `${secsAgo}s ago`, hi: false },
-              { label: "ETA", value: pkg.eta, hi: false },
-            ].map(({ label, value, hi }, i, arr) => (
-              <div key={label} className="flex items-center gap-4">
-                <div className="text-center">
-                  <div className="text-[9px] text-white/25 mb-0.5">{label}</div>
-                  <div className={`text-xs font-mono font-semibold ${hi ? "text-red-400" : "text-white/75"}`}>{value}</div>
+        <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center px-3">
+          <div className="overflow-x-auto max-w-full rounded-2xl">
+            <div className="bg-black/90 backdrop-blur border border-white/10 rounded-2xl shadow-2xl flex items-center w-max">
+              {/* Mobile: 3 core stats; Desktop: all 5 */}
+              {[
+                { label: "Speed", value: `${simSpeed} km/h`, hi: true, mobile: true },
+                { label: "Heading", value: `${bearingToCardinal(bearing)} ${Math.round(bearing)}°`, hi: false, mobile: true },
+                { label: "ETA", value: pkg.eta, hi: false, mobile: true },
+                { label: "Progress", value: `${progress}%`, hi: false, mobile: false },
+                { label: "Last Ping", value: `${secsAgo}s ago`, hi: false, mobile: false },
+              ].map(({ label, value, hi, mobile }, i, arr) => (
+                <div
+                  key={label}
+                  className={`flex items-center gap-3 ${!mobile ? "hidden sm:flex" : "flex"}`}
+                >
+                  <div className="px-4 py-2.5 text-center">
+                    <div className="text-[9px] text-white/25 mb-0.5 whitespace-nowrap">{label}</div>
+                    <div className={`text-xs font-mono font-semibold whitespace-nowrap ${hi ? "text-red-400" : "text-white/75"}`}>{value}</div>
+                  </div>
+                  {i < arr.length - 1 && <div className="w-px h-5 bg-white/8 flex-shrink-0" />}
                 </div>
-                {i < arr.length - 1 && <div className="w-px h-5 bg-white/8" />}
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Delivered banner */}
       {isDelivered && (
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20">
+        <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center px-3">
           <div className="bg-green-600/15 backdrop-blur border border-green-500/30 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-2xl">
             <CheckCircle2 className="w-5 h-5 text-green-400 flex-shrink-0" />
             <div>
