@@ -159,7 +159,7 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
+    <div className="min-h-dvh bg-[#0a0a0a] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <div className="flex flex-col items-center gap-3 mb-6">
@@ -1432,7 +1432,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
   };
 
   return (
-    <div className="h-screen bg-[#0a0a0a] text-white flex flex-col overflow-hidden">
+    <div className="h-dvh bg-[#0a0a0a] text-white flex flex-col overflow-hidden">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg border text-xs font-medium shadow-xl ${
@@ -1444,7 +1444,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
       )}
 
       {/* Top nav */}
-      <nav className="border-b border-white/6 bg-[#0a0a0a]/95 backdrop-blur sticky top-0 z-40 flex-shrink-0">
+      <nav className="border-b border-white/6 bg-[#0a0a0a] sticky top-0 z-40 flex-shrink-0">
         <div className="px-4 md:px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button onClick={onBack} className="text-xs text-white/30 hover:text-white/60 transition-colors flex items-center gap-1.5">
@@ -1506,7 +1506,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
                 tab === id ? "text-red-400" : "text-white/30"
               }`}>
               <Icon className="w-4 h-4" />
-              <span className="hidden xs:inline">{label}</span>
+              <span className="hidden">{label}</span>
             </button>
           ))}
         </div>
