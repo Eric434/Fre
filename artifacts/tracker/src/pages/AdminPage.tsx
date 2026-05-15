@@ -32,7 +32,7 @@ const ROUTE_PRESETS: Record<string, { label: string; route: [number, number][]; 
     route: [[34.0522,-118.2437],[34.6,-118.6],[35.2,-119.0],[35.65,-119.3],[35.9,-119.5],[36.3,-119.8],[36.7,-120.1],[37.1,-120.6],[37.4,-121.1],[37.6,-121.9],[37.7749,-122.4194]],
   },
   portland_sf: {
-    label: "Portland → San Francisco",
+    label: "Portland → toSan Francisco",
     origin: "Portland, OR",
     destination: "San Francisco, CA",
     route: [[45.5051,-122.675],[44.0,-122.3],[42.8,-122.0],[41.5,-122.15],[40.3,-122.3],[39.2,-122.4],[38.5,-122.5],[38.0,-122.48],[37.7749,-122.4194]],
@@ -1432,7 +1432,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
+    <div className="h-screen bg-[#0a0a0a] text-white flex flex-col overflow-hidden">
       {/* Toast */}
       {toast && (
         <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-2.5 rounded-lg border text-xs font-medium shadow-xl ${
@@ -1476,7 +1476,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
         </div>
       </nav>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden min-h-0">
         {/* Sidebar */}
         <aside className="w-52 border-r border-white/6 bg-[#0d0d0d] flex-shrink-0 hidden md:flex flex-col py-4">
           <nav className="flex-1 px-2 space-y-0.5">
@@ -1499,7 +1499,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
         </aside>
 
         {/* Mobile bottom nav */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0d0d0d]/95 backdrop-blur border-t border-white/8 flex">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#0d0d0d] border-t border-white/8 flex">
           {NAV_ITEMS.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setTab(id)}
               className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[9px] transition-all ${
