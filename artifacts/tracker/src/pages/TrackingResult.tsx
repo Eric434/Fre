@@ -104,7 +104,7 @@ function getMilestoneIndex(status: string): number {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOTAL = 200;
-const STEP_MS = 1800;
+const STEP_MS = 4500;
 
 type DrawerTab = "timeline" | "alerts" | "docs";
 interface Props { code: string; onBack: () => void; onAdmin: () => void; }
