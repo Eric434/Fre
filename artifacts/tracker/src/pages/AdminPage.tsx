@@ -658,7 +658,7 @@ function DashboardTab({ packages, onCreateNew, onRefresh, loading }: {
   return (
     <div className="space-y-6">
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {STATS.map(({ label, value, icon: Icon, color, bg }) => (
           <div key={label} className={`rounded-xl border p-4 ${bg}`}>
             <Icon className={`w-4 h-4 mb-2 ${color}`} />
@@ -785,7 +785,7 @@ function DashboardTab({ packages, onCreateNew, onRefresh, loading }: {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: "New Shipment", icon: Plus, action: onCreateNew, primary: true },
           { label: "Refresh Data", icon: RefreshCw, action: onRefresh, primary: false },
@@ -976,7 +976,7 @@ function PaymentsTab({ packages }: { packages: Pkg[] }) {
   return (
     <div className="space-y-5">
       {/* Revenue summary */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total Revenue", value: `$${total.toFixed(2)}`, color: "text-white/80", bg: "bg-white/4 border-white/8" },
           { label: "Collected", value: `$${paid.toFixed(2)}`, color: "text-green-400", bg: "bg-green-500/8 border-green-500/15" },
@@ -1036,7 +1036,7 @@ function PaymentsTab({ packages }: { packages: Pkg[] }) {
           <CreditCard className="w-4 h-4 text-white/30" />
           <span className="text-sm font-medium text-white/70">Payment Methods</span>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {PAYMENT_METHODS.map(({ name, icon: Icon, desc, status }) => (
             <div key={name} className="flex items-center gap-3 p-3 bg-white/3 rounded-xl border border-white/6">
               <div className="w-8 h-8 rounded-lg bg-white/6 flex items-center justify-center flex-shrink-0">
@@ -1075,7 +1075,7 @@ function CustomsTab({ packages }: { packages: Pkg[] }) {
   return (
     <div className="space-y-5">
       {/* Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
         {[
           { label: "Cleared", value: cleared, color: "text-green-400 bg-green-500/8 border-green-500/15" },
           { label: "In Review", value: inReview, color: "text-yellow-400 bg-yellow-500/8 border-yellow-500/15" },
@@ -1173,7 +1173,7 @@ function SupportTab() {
   return (
     <div className="space-y-5">
       {/* Contact options */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {CONTACTS.map(({ icon: Icon, label, value, action }) => (
           <a key={label} href={action}
             className="flex flex-col items-center gap-2 p-4 bg-[#111] border border-white/6 rounded-2xl hover:border-white/15 transition-all text-center group">
@@ -1310,7 +1310,7 @@ function SettingsTab({ onLogout }: { onLogout: () => void }) {
           <Globe className="w-4 h-4 text-white/30" />
           <span className="text-sm font-medium text-white/70">Site Pages</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
           {COMMON_PAGES.map(({ name, path, desc }) => (
             <a key={name} href={path}
               className="p-3 bg-white/3 rounded-lg border border-white/5 hover:border-white/15 transition-all">
@@ -1344,7 +1344,7 @@ function SettingsTab({ onLogout }: { onLogout: () => void }) {
 
       {/* Footer info */}
       <div className="bg-[#0d0d0d] border border-white/5 rounded-2xl p-5 space-y-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-[10px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-[10px]">
           <div>
             <div className="text-white/25 mb-1.5 uppercase tracking-wider text-[9px]">Company</div>
             <div className="text-white/40">TeslaTrack Inc.</div>
