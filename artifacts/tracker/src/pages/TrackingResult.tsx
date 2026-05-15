@@ -476,122 +476,403 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
 
 // ─── Document printing ────────────────────────────────────────────────────────
 
-function printDocument(doc: { name: string; desc: string; ref: string; pages: number }, pkg: Pkg, code: string) {
-  const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  const refNo = `${doc.ref}-${code.slice(-3)}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+const BASE_CSS = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; padding: 40px; }
+  .hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 28px; }
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .logo span { color: #dc2626; }
+  .meta { text-align: right; font-size: 10px; color: #888; line-height: 1.8; }
+  .meta strong { color: #111; font-size: 11px; display: block; margin-bottom: 2px; }
+  .doc-title { font-size: 22px; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 3px; }
+  .doc-sub { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.12em; }
+  .tcode { font-family: monospace; font-size: 20px; font-weight: 700; letter-spacing: 0.08em; border: 2px solid #111; display: inline-block; padding: 7px 18px; margin: 10px 0 0; }
+  .sec { margin-bottom: 24px; }
+  .sec-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #999; border-bottom: 1px solid #e5e5e5; padding-bottom: 5px; margin-bottom: 14px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 36px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px 24px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px 20px; }
+  .fl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .fv { font-size: 11px; color: #111; font-weight: 500; line-height: 1.4; }
+  .fv-sm { font-size: 10px; color: #444; margin-top: 2px; line-height: 1.5; }
+  .party-box { border: 1px solid #e5e5e5; border-radius: 6px; padding: 14px; }
+  .party-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #dc2626; margin-bottom: 8px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 10.5px; }
+  th { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; border-bottom: 2px solid #e5e5e5; padding: 7px 8px; text-align: left; }
+  td { padding: 8px 8px; border-bottom: 1px solid #f3f3f3; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  .total-row td { border-top: 2px solid #111; font-weight: 700; font-size: 12px; padding-top: 10px; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .b-green { background:#f0fdf4;border:1px solid #86efac;color:#15803d; }
+  .b-blue  { background:#eff6ff;border:1px solid #93c5fd;color:#1d4ed8; }
+  .b-yellow{ background:#fefce8;border:1px solid #fde047;color:#854d0e; }
+  .b-gray  { background:#f9f9f9;border:1px solid #d4d4d4;color:#555; }
+  .notice { background: #f9f9f9; border-left: 3px solid #dc2626; padding: 10px 14px; font-size: 10px; color: #555; line-height: 1.6; margin-top: 4px; }
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; margin-top: 44px; }
+  .sig-line { border-top: 1px solid #bbb; padding-top: 6px; font-size: 9px; color: #888; }
+  .ftr { margin-top: 36px; border-top: 1px solid #e5e5e5; padding-top: 14px; display: flex; justify-content: space-between; font-size: 9px; color: #bbb; }
+  @media print { body { padding: 24px; } }
+`;
 
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <title>${doc.name} — ${code}</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; padding: 40px; }
-    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 24px; }
-    .logo { font-size: 18px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-    .logo span { color: #dc2626; }
-    .doc-title { font-size: 20px; font-weight: 300; color: #111; margin-bottom: 4px; }
-    .doc-subtitle { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; }
-    .ref-block { text-align: right; font-size: 10px; color: #888; line-height: 1.7; }
-    .ref-block strong { color: #111; font-size: 11px; }
-    .section { margin-bottom: 24px; }
-    .section-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #888; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; margin-bottom: 12px; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; }
-    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
-    .field { margin-bottom: 2px; }
-    .field-label { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
-    .field-value { font-size: 11px; color: #111; font-weight: 500; }
-    .tracking-code { font-family: monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #111; border: 2px solid #111; display: inline-block; padding: 8px 20px; margin: 12px 0; }
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
-    .badge-green { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
-    .badge-blue { background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; }
-    .badge-yellow { background: #fefce8; border: 1px solid #fde047; color: #854d0e; }
-    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
-    th { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; }
-    td { font-size: 11px; padding: 8px 8px; border-bottom: 1px solid #f5f5f5; }
-    .footer { margin-top: 40px; border-top: 1px solid #e5e5e5; padding-top: 16px; display: flex; justify-content: space-between; font-size: 9px; color: #aaa; }
-    .sig-block { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
-    .sig-line { border-top: 1px solid #111; padding-top: 6px; font-size: 9px; color: #888; }
-    @media print { body { padding: 24px; } }
-  </style>
-</head>
-<body>
-  <div class="header">
+function docHeader(docName: string, refNo: string, now: string, pages: number) {
+  return `<div class="hdr">
     <div>
       <div class="logo">Tesla<span>Track</span></div>
       <div style="font-size:9px;color:#888;margin-top:4px;letter-spacing:0.1em;">PRECISION FLEET LOGISTICS</div>
     </div>
-    <div class="ref-block">
-      <strong>${doc.name.toUpperCase()}</strong><br/>
-      Ref: ${refNo}<br/>
-      Issued: ${now}<br/>
-      Pages: ${doc.pages}
+    <div class="meta">
+      <strong>${docName.toUpperCase()}</strong>
+      Ref: ${refNo}<br/>Issued: ${now}<br/>Pages: ${pages}
     </div>
-  </div>
+  </div>`;
+}
 
-  <div class="section">
-    <div class="doc-title">${doc.name}</div>
-    <div class="doc-subtitle">${doc.desc}</div>
-    <div class="tracking-code">${code}</div>
-  </div>
+function partyBlock(label: string, name: string, address: string, email: string, phone: string) {
+  return `<div class="party-box">
+    <div class="party-label">${label}</div>
+    <div class="fv">${name || "—"}</div>
+    ${address ? `<div class="fv-sm">${address}</div>` : ""}
+    ${email   ? `<div class="fv-sm">${email}</div>` : ""}
+    ${phone   ? `<div class="fv-sm">${phone}</div>` : ""}
+  </div>`;
+}
 
-  <div class="section">
-    <div class="section-title">Shipment Details</div>
-    <div class="grid">
-      <div class="field"><div class="field-label">Origin</div><div class="field-value">${pkg.origin}</div></div>
-      <div class="field"><div class="field-label">Destination</div><div class="field-value">${pkg.destination}</div></div>
-      <div class="field"><div class="field-label">Carrier</div><div class="field-value">${pkg.carrier || "Tesla Express"}</div></div>
-      <div class="field"><div class="field-label">Weight</div><div class="field-value">${pkg.weight || "—"}</div></div>
-      <div class="field"><div class="field-label">Status</div><div class="field-value"><span class="badge badge-blue">${pkg.status}</span></div></div>
-      <div class="field"><div class="field-label">ETA</div><div class="field-value">${pkg.eta}</div></div>
-    </div>
-  </div>
-
-  ${(pkg.sender_name || pkg.receiver_name) ? `
-  <div class="section">
-    <div class="section-title">Parties</div>
-    <div class="grid">
-      <div>
-        <div class="field-label" style="margin-bottom:6px;">Sender / Shipper</div>
-        <div class="field-value">${pkg.sender_name || "—"}</div>
-        ${pkg.sender_address ? `<div style="font-size:10px;color:#555;margin-top:2px;">${pkg.sender_address}</div>` : ""}
-        ${pkg.sender_email ? `<div style="font-size:10px;color:#555;">${pkg.sender_email}</div>` : ""}
-        ${pkg.sender_phone ? `<div style="font-size:10px;color:#555;">${pkg.sender_phone}</div>` : ""}
-      </div>
-      <div>
-        <div class="field-label" style="margin-bottom:6px;">Receiver / Consignee</div>
-        <div class="field-value">${pkg.receiver_name || "—"}</div>
-        ${pkg.receiver_address ? `<div style="font-size:10px;color:#555;margin-top:2px;">${pkg.receiver_address}</div>` : ""}
-        ${pkg.receiver_email ? `<div style="font-size:10px;color:#555;">${pkg.receiver_email}</div>` : ""}
-        ${pkg.receiver_phone ? `<div style="font-size:10px;color:#555;">${pkg.receiver_phone}</div>` : ""}
-      </div>
-    </div>
-  </div>` : ""}
-
-  <div class="section">
-    <div class="section-title">Financials & Customs</div>
-    <div class="grid grid-3">
-      <div class="field"><div class="field-label">Shipping Cost</div><div class="field-value">$${Number(pkg.shipping_cost || 0).toFixed(2)}</div></div>
-      <div class="field"><div class="field-label">Customs Fee</div><div class="field-value">$${Number(pkg.customs_fee || 0).toFixed(2)}</div></div>
-      <div class="field"><div class="field-label">Customs Status</div><div class="field-value"><span class="badge ${pkg.customs_status === "Cleared" ? "badge-green" : "badge-yellow"}">${pkg.customs_status || "Pending"}</span></div></div>
-    </div>
-  </div>
-
-  <div class="sig-block">
-    <div class="sig-line">Authorized Signature</div>
-    <div class="sig-line">Carrier Stamp</div>
-    <div class="sig-line">Date</div>
-  </div>
-
-  <div class="footer">
+function docFooter(refNo: string, now: string) {
+  return `<div class="ftr">
     <span>TeslaTrack · Precision Fleet Logistics · ${refNo}</span>
-    <span>Generated ${now} · This document is system-generated</span>
-  </div>
-</body>
-</html>`;
+    <span>Generated ${now} · System-generated document — not a financial instrument</span>
+  </div>`;
+}
 
-  const win = window.open("", "_blank", "width=820,height=1060");
+function buildBOL(pkg: Pkg, code: string, refNo: string, now: string): string {
+  const carrier = pkg.carrier || "Tesla Express";
+  const weight  = pkg.weight  || "—";
+  return `
+  <div class="sec" style="margin-bottom:8px;">
+    <div class="doc-title">Bill of Lading</div>
+    <div class="doc-sub">Master transport document issued by carrier</div>
+    <div class="tcode">${code}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Parties</div>
+    <div class="g2">
+      ${partyBlock("Shipper / Exporter", pkg.sender_name || "On File", pkg.sender_address || "", pkg.sender_email || "", pkg.sender_phone || "")}
+      ${partyBlock("Consignee / Receiver", pkg.receiver_name || "On File", pkg.receiver_address || "", pkg.receiver_email || "", pkg.receiver_phone || "")}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Transport Details</div>
+    <div class="g3">
+      <div><div class="fl">Carrier</div><div class="fv">${carrier}</div></div>
+      <div><div class="fl">Delivery Method</div><div class="fv">${pkg.delivery_method || "Standard"}</div></div>
+      <div><div class="fl">Tracking Code</div><div class="fv" style="font-family:monospace">${code}</div></div>
+      <div><div class="fl">Port of Loading</div><div class="fv">${pkg.origin}</div></div>
+      <div><div class="fl">Port of Discharge</div><div class="fv">${pkg.destination}</div></div>
+      <div><div class="fl">ETA</div><div class="fv">${pkg.eta}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Cargo Description</div>
+    <table>
+      <thead><tr><th>Marks &amp; Numbers</th><th>Description of Goods</th><th>Packages</th><th>Gross Weight</th><th>Measurement</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:monospace">${code}</td><td>General Cargo — As per Commercial Invoice ${refNo.replace("BOL","INV")}</td><td>1 PKG</td><td>${weight}</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Freight &amp; Charges</div>
+    <div class="g3">
+      <div><div class="fl">Freight Charges</div><div class="fv">$${Number(pkg.shipping_cost || 0).toFixed(2)}</div></div>
+      <div><div class="fl">Status</div><div class="fv"><span class="badge b-blue">${pkg.status}</span></div></div>
+      <div><div class="fl">Customs</div><div class="fv"><span class="badge ${pkg.customs_status === "Cleared" ? "b-green" : "b-yellow"}">${pkg.customs_status || "Pending"}</span></div></div>
+    </div>
+  </div>
+
+  <div class="notice">
+  Received by the carrier from the shipper in apparent good order and condition unless otherwise noted herein, the goods described above. In accepting this Bill of Lading the shipper expressly accepts and agrees to all its terms and conditions whether printed, stamped or written, or otherwise incorporated. This Bill of Lading is non-negotiable unless consigned "to order".
+  </div>
+
+  <div class="sig-row">
+    <div class="sig-line">Shipper Signature &amp; Date</div>
+    <div class="sig-line">Carrier Authorized Agent</div>
+    <div class="sig-line">Place &amp; Date of Issue</div>
+  </div>`;
+}
+
+function buildINV(pkg: Pkg, code: string, refNo: string, now: string): string {
+  const subtotal  = Number(pkg.shipping_cost || 0);
+  const customs   = Number(pkg.customs_fee   || 0);
+  const total     = subtotal + customs;
+  return `
+  <div class="sec" style="margin-bottom:8px;">
+    <div class="doc-title">Commercial Invoice</div>
+    <div class="doc-sub">Declared value and goods description</div>
+    <div class="tcode">${code}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Invoice Details</div>
+    <div class="g3">
+      <div><div class="fl">Invoice No.</div><div class="fv" style="font-family:monospace">${refNo}</div></div>
+      <div><div class="fl">Invoice Date</div><div class="fv">${now}</div></div>
+      <div><div class="fl">Payment Terms</div><div class="fv">Net 30</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Parties</div>
+    <div class="g2">
+      ${partyBlock("Seller / Exporter", pkg.sender_name || "On File", pkg.sender_address || "", pkg.sender_email || "", pkg.sender_phone || "")}
+      ${partyBlock("Buyer / Importer",  pkg.receiver_name || "On File", pkg.receiver_address || "", pkg.receiver_email || "", pkg.receiver_phone || "")}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Line Items</div>
+    <table>
+      <thead><tr><th>#</th><th>Description</th><th>HS Code</th><th>Origin</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Shipment — ${code}<br/><span style="font-size:9px;color:#888">${pkg.origin} → ${pkg.destination}</span></td><td>8471.30</td><td>${pkg.origin.split(",").pop()?.trim() || pkg.origin}</td><td>1</td><td>$${subtotal.toFixed(2)}</td><td>$${subtotal.toFixed(2)}</td></tr>
+        ${customs > 0 ? `<tr><td>2</td><td>Customs &amp; Import Duties</td><td>—</td><td>—</td><td>1</td><td>$${customs.toFixed(2)}</td><td>$${customs.toFixed(2)}</td></tr>` : ""}
+      </tbody>
+      <tfoot>
+        <tr class="total-row"><td colspan="5"></td><td>TOTAL DUE</td><td>$${total.toFixed(2)} USD</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Declaration</div>
+    <div class="notice">I hereby certify that the information on this invoice is true and correct and that the contents and value of this shipment are as stated above.</div>
+  </div>
+
+  <div class="sig-row">
+    <div class="sig-line">Authorized Signature</div>
+    <div class="sig-line">Title / Position</div>
+    <div class="sig-line">Date</div>
+  </div>`;
+}
+
+function buildCUST(pkg: Pkg, code: string, refNo: string, now: string): string {
+  const declaredValue = Number(pkg.shipping_cost || 0) + Number(pkg.customs_fee || 0);
+  return `
+  <div class="sec" style="margin-bottom:8px;">
+    <div class="doc-title">Customs Declaration</div>
+    <div class="doc-sub">Import / Export Regulatory Filing</div>
+    <div class="tcode">${code}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Declaration Reference</div>
+    <div class="g4">
+      <div><div class="fl">Declaration No.</div><div class="fv" style="font-family:monospace">${refNo}</div></div>
+      <div><div class="fl">Date Filed</div><div class="fv">${now}</div></div>
+      <div><div class="fl">Type</div><div class="fv">${pkg.delivery_method === "Import" ? "Import" : "Export"}</div></div>
+      <div><div class="fl">Status</div><div class="fv"><span class="badge ${pkg.customs_status === "Cleared" ? "b-green" : "b-yellow"}">${pkg.customs_status || "Pending"}</span></div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Declarant &amp; Parties</div>
+    <div class="g2">
+      ${partyBlock("Exporter / Consignor", pkg.sender_name || "On File", pkg.sender_address || "", pkg.sender_email || "", pkg.sender_phone || "")}
+      ${partyBlock("Importer / Consignee", pkg.receiver_name || "On File", pkg.receiver_address || "", pkg.receiver_email || "", pkg.receiver_phone || "")}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Goods Classification</div>
+    <table>
+      <thead><tr><th>Item</th><th>Description</th><th>HS Code</th><th>Country of Origin</th><th>Gross Wt.</th><th>Declared Value</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>General Cargo<br/><span style="font-size:9px;color:#888">Ref: ${code}</span></td>
+          <td>8471.30.0000</td>
+          <td>${pkg.origin.split(",").pop()?.trim() || pkg.origin}</td>
+          <td>${pkg.weight || "—"}</td>
+          <td>$${declaredValue.toFixed(2)} USD</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Tariff &amp; Duty Assessment</div>
+    <div class="g3">
+      <div><div class="fl">Declared Value</div><div class="fv">$${declaredValue.toFixed(2)} USD</div></div>
+      <div><div class="fl">Customs Fee</div><div class="fv">$${Number(pkg.customs_fee || 0).toFixed(2)} USD</div></div>
+      <div><div class="fl">Clearance Status</div><div class="fv"><span class="badge ${pkg.customs_status === "Cleared" ? "b-green" : "b-yellow"}">${pkg.customs_status || "Pending"}</span></div></div>
+      <div><div class="fl">Port of Entry</div><div class="fv">${pkg.destination}</div></div>
+      <div><div class="fl">Port of Exit</div><div class="fv">${pkg.origin}</div></div>
+      <div><div class="fl">Carrier</div><div class="fv">${pkg.carrier || "Tesla Express"}</div></div>
+    </div>
+  </div>
+
+  <div class="notice">
+  I declare that the information provided herein is complete, true, and correct to the best of my knowledge and belief. I understand that any false or misleading statement may subject me to civil and criminal penalties.
+  </div>
+
+  <div class="sig-row">
+    <div class="sig-line">Declarant Signature</div>
+    <div class="sig-line">Customs Officer Stamp</div>
+    <div class="sig-line">Date of Clearance</div>
+  </div>`;
+}
+
+function buildPKL(pkg: Pkg, code: string, refNo: string, _now: string): string {
+  return `
+  <div class="sec" style="margin-bottom:8px;">
+    <div class="doc-title">Packing List</div>
+    <div class="doc-sub">Itemized list of shipment contents</div>
+    <div class="tcode">${code}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Shipment Summary</div>
+    <div class="g4">
+      <div><div class="fl">From</div><div class="fv">${pkg.origin}</div></div>
+      <div><div class="fl">To</div><div class="fv">${pkg.destination}</div></div>
+      <div><div class="fl">Carrier</div><div class="fv">${pkg.carrier || "Tesla Express"}</div></div>
+      <div><div class="fl">Method</div><div class="fv">${pkg.delivery_method || "Standard"}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Parties</div>
+    <div class="g2">
+      ${partyBlock("Shipper", pkg.sender_name || "On File", pkg.sender_address || "", pkg.sender_email || "", pkg.sender_phone || "")}
+      ${partyBlock("Consignee", pkg.receiver_name || "On File", pkg.receiver_address || "", pkg.receiver_email || "", pkg.receiver_phone || "")}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Package Contents</div>
+    <table>
+      <thead><tr><th>Pkg #</th><th>Description</th><th>Qty</th><th>Unit</th><th>Net Wt.</th><th>Gross Wt.</th><th>Dimensions (cm)</th><th>Marks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>General Cargo<br/><span style="font-size:9px;color:#888">Tracking: ${code}</span></td>
+          <td>1</td>
+          <td>PKG</td>
+          <td>${pkg.weight || "—"}</td>
+          <td>${pkg.weight || "—"}</td>
+          <td>—</td>
+          <td style="font-family:monospace;font-size:10px">${code}</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr class="total-row"><td colspan="4">Totals</td><td>${pkg.weight || "—"}</td><td>${pkg.weight || "—"}</td><td></td><td>1 Pkg</td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Special Handling Instructions</div>
+    <div class="notice">Handle with care. Keep upright. Do not stack more than 3 high. Protect from moisture. Reference packing list ref ${refNo} on all correspondence.</div>
+  </div>
+
+  <div class="sig-row">
+    <div class="sig-line">Packed By</div>
+    <div class="sig-line">Verified By</div>
+    <div class="sig-line">Date Packed</div>
+  </div>`;
+}
+
+function buildINS(pkg: Pkg, code: string, refNo: string, now: string): string {
+  const insuredValue = (Number(pkg.shipping_cost || 0) + Number(pkg.customs_fee || 0)) * 1.1;
+  const policyNo     = `TT-POL-${code.slice(-6)}-${Date.now().toString(36).slice(-4).toUpperCase()}`;
+  return `
+  <div class="sec" style="margin-bottom:8px;">
+    <div class="doc-title">Insurance Certificate</div>
+    <div class="doc-sub">Cargo insurance documentation</div>
+    <div class="tcode">${code}</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Policy Details</div>
+    <div class="g4">
+      <div><div class="fl">Policy No.</div><div class="fv" style="font-family:monospace">${policyNo}</div></div>
+      <div><div class="fl">Certificate No.</div><div class="fv" style="font-family:monospace">${refNo}</div></div>
+      <div><div class="fl">Issue Date</div><div class="fv">${now}</div></div>
+      <div><div class="fl">Coverage Type</div><div class="fv">All-Risk (ICC-A)</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Insured &amp; Beneficiary</div>
+    <div class="g2">
+      ${partyBlock("Insured Party", pkg.sender_name || "TeslaTrack Client", pkg.sender_address || "", pkg.sender_email || "", pkg.sender_phone || "")}
+      ${partyBlock("Loss Payable To", pkg.receiver_name || "Consignee on Record", pkg.receiver_address || "", pkg.receiver_email || "", pkg.receiver_phone || "")}
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Coverage Details</div>
+    <div class="g3">
+      <div><div class="fl">Insured Value</div><div class="fv">$${insuredValue.toFixed(2)} USD</div></div>
+      <div><div class="fl">Deductible</div><div class="fv">$250.00 USD</div></div>
+      <div><div class="fl">Premium</div><div class="fv">$${(insuredValue * 0.008).toFixed(2)} USD</div></div>
+      <div><div class="fl">Conveyance</div><div class="fv">${pkg.carrier || "Tesla Express"}</div></div>
+      <div><div class="fl">From</div><div class="fv">${pkg.origin}</div></div>
+      <div><div class="fl">To</div><div class="fv">${pkg.destination}</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Covered Risks</div>
+    <table>
+      <thead><tr><th>Risk Category</th><th>Covered</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Physical Loss or Damage</td><td><span class="badge b-green">Yes</span></td><td>All-risk, ICC-A clause</td></tr>
+        <tr><td>Theft &amp; Pilferage</td><td><span class="badge b-green">Yes</span></td><td>Subject to deductible</td></tr>
+        <tr><td>Natural Perils</td><td><span class="badge b-green">Yes</span></td><td>Storm, flood, lightning</td></tr>
+        <tr><td>War &amp; Strikes</td><td><span class="badge b-gray">Excluded</span></td><td>Available as endorsement</td></tr>
+        <tr><td>Inherent Vice</td><td><span class="badge b-gray">Excluded</span></td><td>Standard exclusion</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="notice">
+  To file a claim, contact TeslaTrack Cargo Insurance within 72 hours of discovery of loss or damage. Quote policy number <strong>${policyNo}</strong> and tracking reference <strong>${code}</strong>. This certificate is issued subject to the terms and conditions of the master policy.
+  </div>
+
+  <div class="sig-row">
+    <div class="sig-line">Authorized Underwriter</div>
+    <div class="sig-line">Policy Stamp</div>
+    <div class="sig-line">Effective Date</div>
+  </div>`;
+}
+
+function printDocument(doc: { name: string; ref: string; pages: number }, pkg: Pkg, code: string) {
+  const now   = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const refNo = `${doc.ref}-${code.slice(-3)}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+
+  const bodyMap: Record<string, string> = {
+    BOL:  buildBOL (pkg, code, refNo, now),
+    INV:  buildINV (pkg, code, refNo, now),
+    CUST: buildCUST(pkg, code, refNo, now),
+    PKL:  buildPKL (pkg, code, refNo, now),
+    INS:  buildINS (pkg, code, refNo, now),
+  };
+
+  const body = bodyMap[doc.ref] ?? bodyMap["BOL"];
+
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/>
+  <title>${doc.name} — ${code}</title>
+  <style>${BASE_CSS}</style></head><body>
+  ${docHeader(doc.name, refNo, now, doc.pages)}
+  ${body}
+  ${docFooter(refNo, now)}
+  </body></html>`;
+
+  const win = window.open("", "_blank", "width=860,height=1100");
   if (!win) return;
   win.document.write(html);
   win.document.close();
@@ -602,41 +883,11 @@ function printDocument(doc: { name: string; desc: string; ref: string; pages: nu
 // ─── Document Vault panel ─────────────────────────────────────────────────────
 
 const DOCUMENTS = [
-  {
-    name: "Bill of Lading",
-    desc: "Master transport document issued by carrier",
-    status: "available" as const,
-    pages: 2,
-    ref: "BOL",
-  },
-  {
-    name: "Commercial Invoice",
-    desc: "Declared value and goods description",
-    status: "available" as const,
-    pages: 1,
-    ref: "INV",
-  },
-  {
-    name: "Customs Declaration",
-    desc: "Import/export regulatory filing",
-    status: "pending" as const,
-    pages: 3,
-    ref: "CUST",
-  },
-  {
-    name: "Packing List",
-    desc: "Itemized list of shipment contents",
-    status: "available" as const,
-    pages: 1,
-    ref: "PKL",
-  },
-  {
-    name: "Insurance Certificate",
-    desc: "Cargo insurance documentation",
-    status: "processing" as const,
-    pages: 2,
-    ref: "INS",
-  },
+  { name: "Bill of Lading",       desc: "Master transport document issued by carrier", status: "available" as const, pages: 2, ref: "BOL"  },
+  { name: "Commercial Invoice",   desc: "Declared value and goods description",         status: "available" as const, pages: 1, ref: "INV"  },
+  { name: "Customs Declaration",  desc: "Import/export regulatory filing",              status: "available" as const, pages: 3, ref: "CUST" },
+  { name: "Packing List",         desc: "Itemized list of shipment contents",           status: "available" as const, pages: 1, ref: "PKL"  },
+  { name: "Insurance Certificate",desc: "Cargo insurance documentation",                status: "available" as const, pages: 2, ref: "INS"  },
 ];
 
 function DocumentsPanel({ code, pkg }: { code: string; pkg: Pkg }) {
