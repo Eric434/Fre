@@ -10,29 +10,36 @@ import { fetchPackage, subscribeToAlerts, notifyDelivered, type Package as Pkg, 
 
 // ─── Route normalization + interpolation ──────────────────────────────────────
 
-type WaypointRaw = [number, number] | { lat: number; lng: number };
+type WaypointRaw = [number, number] | { lat: number; lng: number } | unknown;
 
-function normalizeRoute(route: WaypointRaw[]): [number, number][] {
-  return route.map((wp) =>
-    Array.isArray(wp) ? (wp as [number, number]) : [wp.lat, wp.lng]
-  );
+function normalizeRoute(route: unknown): [number, number][] {
+  if (!Array.isArray(route) || route.length === 0) return [];
+  return route.map((wp): [number, number] => {
+    if (Array.isArray(wp) && wp.length >= 2) return [Number(wp[0]), Number(wp[1])];
+    if (wp && typeof wp === "object" && "lat" in wp && "lng" in wp)
+      return [Number((wp as { lat: unknown }).lat), Number((wp as { lng: unknown }).lng)];
+    return [0, 0];
+  });
 }
 
 function interpolateRoute(waypoints: [number, number][], n: number): [number, number][] {
-  if (waypoints.length < 2) return waypoints;
+  if (waypoints.length < 2) return waypoints.length === 1 ? [waypoints[0], waypoints[0]] : [[0, 0], [0, 0]];
   const dists: number[] = [0];
   for (let i = 1; i < waypoints.length; i++) {
-    const [a, b] = waypoints[i - 1], [c, d] = waypoints[i];
+    const [a, b] = waypoints[i - 1];
+    const [c, d] = waypoints[i];
     dists.push(dists[i - 1] + Math.sqrt((c - a) ** 2 + (d - b) ** 2));
   }
   const total = dists[dists.length - 1];
+  if (total === 0) return Array(n).fill(waypoints[0]) as [number, number][];
   return Array.from({ length: n }, (_, i) => {
     const t = (i / (n - 1)) * total;
     let seg = 0;
     for (let j = 1; j < dists.length; j++) { if (dists[j] >= t) { seg = j - 1; break; } seg = j - 1; }
     const len = (dists[seg + 1] ?? dists[seg]) - dists[seg];
     const f = len > 0 ? (t - dists[seg]) / len : 0;
-    const [a, b] = waypoints[seg], [c, d] = waypoints[Math.min(seg + 1, waypoints.length - 1)];
+    const [a, b] = waypoints[seg];
+    const [c, d] = waypoints[Math.min(seg + 1, waypoints.length - 1)];
     return [a + f * (c - a), b + f * (d - b)] as [number, number];
   });
 }
@@ -557,7 +564,7 @@ function DocumentsPanel({ code }: { code: string }) {
 // ─── Main TrackingView ────────────────────────────────────────────────────────
 
 function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; onBack: () => void; onAdmin: () => void }) {
-  const route = normalizeRoute(pkg.route as WaypointRaw[]);
+  const route = normalizeRoute(pkg.route);
   const fullPath = interpolateRoute(route, TOTAL);
   const startIdx = Math.min(Math.floor(pkg.start_progress * (TOTAL - 1)), TOTAL - 1);
 
