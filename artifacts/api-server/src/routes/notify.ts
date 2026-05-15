@@ -29,7 +29,7 @@ function buildEmail({
   from: string;
   to: string;
   subject: string;
-  badgeColor: string;
+  badgeColor: { bg: string; border: string; text: string };
   badgeText: string;
   headline: string;
   bodyText: string;
