@@ -4,8 +4,8 @@ import {
   CheckCircle2, RefreshCw, X, Eye, LayoutDashboard, CreditCard, FileText,
   MessageSquare, Settings, Truck, User, MapPin, Phone, Mail, Scale,
   DollarSign, Shield, Globe, Zap, Bell, Clock, TrendingUp, BarChart3,
-  Download, ChevronDown, ChevronUp, Send, HelpCircle, Lock as LockIcon,
-  Wifi, Star, QrCode, Languages, Search, Filter, Edit3,
+  Download, ChevronDown, ChevronUp, Send, HelpCircle,
+  Wifi, Star, QrCode, Languages, Search,
 } from "lucide-react";
 import {
   adminLogin, adminListPackages, adminCreatePackage,
@@ -1260,7 +1260,7 @@ function SupportTab() {
 function SettingsTab({ onLogout }: { onLogout: () => void }) {
   const FEATURES = [
     { icon: Shield, label: "Admin Authentication", desc: "Password-protected admin portal with session storage", status: "Active" },
-    { icon: LockIcon, label: "SSL / HTTPS Encryption", desc: "All data transmitted over encrypted connections", status: "Active" },
+    { icon: Lock, label: "SSL / HTTPS Encryption", desc: "All data transmitted over encrypted connections", status: "Active" },
     { icon: Wifi, label: "Real-time GPS Tracking", desc: "Live vehicle position simulation with bearing & speed", status: "Active" },
     { icon: Bell, label: "Push Notifications", desc: "Email alerts via Resend API on delivery events", status: "Active" },
     { icon: QrCode, label: "QR Code Tracking", desc: "Deep-link URLs for instant tracking access", status: "Active" },
@@ -1324,7 +1324,7 @@ function SettingsTab({ onLogout }: { onLogout: () => void }) {
       {/* Admin account */}
       <div className="bg-[#111] border border-white/6 rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
-          <LockIcon className="w-4 h-4 text-white/30" />
+          <Lock className="w-4 h-4 text-white/30" />
           <span className="text-sm font-medium text-white/70">Admin Account</span>
         </div>
         <div className="space-y-3">
