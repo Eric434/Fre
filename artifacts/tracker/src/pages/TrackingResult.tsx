@@ -187,7 +187,7 @@ export default function TrackingResult({ code, onBack, onAdmin }: Props) {
 
   if (result === "loading") return <LoadingScreen />;
   if (!result.ok && result.reason === "not_found") return <NotFoundScreen code={code} onBack={onBack} />;
-  if (!result.ok) return <ErrorScreen code={code} reason={result.reason} onBack={onBack} onRetry={load} />;
+  if (!result.ok) return <ErrorScreen code={code} reason={result.reason as "server_error" | "network_error"} onBack={onBack} onRetry={load} />;
   return <TrackingView pkg={result.pkg} code={code} onBack={onBack} onAdmin={onAdmin} />;
 }
 

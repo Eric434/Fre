@@ -23,6 +23,19 @@ export interface Package {
   route: [number, number][];
   events: PackageEvent[];
   created_at: string;
+  sender_name: string;
+  sender_email: string;
+  sender_phone: string;
+  sender_address: string;
+  receiver_name: string;
+  receiver_email: string;
+  receiver_phone: string;
+  receiver_address: string;
+  delivery_method: string;
+  shipping_cost: number;
+  customs_status: string;
+  customs_fee: number;
+  subscriber_count?: number;
 }
 
 // ─── Public ───────────────────────────────────────────────────────────────────
