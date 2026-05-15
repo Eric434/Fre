@@ -27,14 +27,18 @@ export interface Package {
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 
-export async function fetchPackage(code: string): Promise<Package | null> {
+export type FetchPackageResult =
+  | { ok: true; pkg: Package }
+  | { ok: false; reason: "not_found" | "server_error" | "network_error" };
+
+export async function fetchPackage(code: string): Promise<FetchPackageResult> {
   try {
     const res = await fetch(`${API}/packages/${encodeURIComponent(code.trim().toUpperCase())}`);
-    if (res.status === 404) return null;
-    if (!res.ok) throw new Error("Server error");
-    return await res.json();
+    if (res.status === 404) return { ok: false, reason: "not_found" };
+    if (!res.ok) return { ok: false, reason: "server_error" };
+    return { ok: true, pkg: await res.json() };
   } catch {
-    return null;
+    return { ok: false, reason: "network_error" };
   }
 }
 

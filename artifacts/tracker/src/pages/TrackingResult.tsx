@@ -6,9 +6,17 @@ import {
   Loader2, AlertCircle, Wifi, ChevronRight, Gauge, Battery,
   X, Menu, List,
 } from "lucide-react";
-import { fetchPackage, subscribeToAlerts, notifyDelivered, type Package as Pkg } from "@/lib/api";
+import { fetchPackage, subscribeToAlerts, notifyDelivered, type Package as Pkg, type FetchPackageResult } from "@/lib/api";
 
 // ─── Route interpolation ──────────────────────────────────────────────────────
+
+type WaypointRaw = [number, number] | { lat: number; lng: number };
+
+function normalizeRoute(route: WaypointRaw[]): [number, number][] {
+  return route.map((wp) =>
+    Array.isArray(wp) ? (wp as [number, number]) : [wp.lat, wp.lng]
+  );
+}
 
 function interpolateRoute(waypoints: [number, number][], n: number): [number, number][] {
   if (waypoints.length < 2) return waypoints;
@@ -102,14 +110,56 @@ function NotFoundScreen({ code, onBack }: { code: string; onBack: () => void }) 
   );
 }
 
+function ErrorScreen({ code, reason, onBack, onRetry }: {
+  code: string; reason: "server_error" | "network_error"; onBack: () => void; onRetry: () => void;
+}) {
+  const isNetwork = reason === "network_error";
+  return (
+    <div className="flex flex-col h-[100dvh] bg-[#0a0a0a] text-white items-center justify-center gap-5 px-6 text-center">
+      <div className="w-14 h-14 rounded-2xl bg-red-500/8 border border-red-500/20 flex items-center justify-center">
+        <AlertCircle className="w-6 h-6 text-red-400/60" />
+      </div>
+      <div>
+        <p className="text-sm font-semibold text-white/70 mb-1">
+          {isNetwork ? "No connection" : "Server error"}
+        </p>
+        <code className="text-xs font-mono text-white/30">{code}</code>
+        <p className="text-xs text-white/25 mt-2 max-w-xs">
+          {isNetwork
+            ? "Could not reach the tracking server. Check your connection and try again."
+            : "Something went wrong on our end. Please try again in a moment."}
+        </p>
+      </div>
+      <div className="flex items-center gap-3">
+        <button onClick={onBack}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg border border-white/10 text-xs text-white/50 hover:text-white hover:border-white/25 transition-all">
+          <ArrowLeft className="w-3.5 h-3.5" /> Go back
+        </button>
+        <button onClick={onRetry}
+          className="flex items-center gap-2 px-5 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all">
+          <RotateCcw className="w-3.5 h-3.5" /> Retry
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
 export default function TrackingResult({ code, onBack, onAdmin }: Props) {
-  const [pkg, setPkg] = useState<Pkg | null | "loading">("loading");
-  useEffect(() => { fetchPackage(code).then(setPkg); }, [code]);
-  if (pkg === "loading") return <LoadingScreen />;
-  if (pkg === null) return <NotFoundScreen code={code} onBack={onBack} />;
-  return <TrackingView pkg={pkg} code={code} onBack={onBack} onAdmin={onAdmin} />;
+  const [result, setResult] = useState<FetchPackageResult | "loading">("loading");
+
+  const load = useCallback(() => {
+    setResult("loading");
+    fetchPackage(code).then(setResult);
+  }, [code]);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (result === "loading") return <LoadingScreen />;
+  if (!result.ok && result.reason === "not_found") return <NotFoundScreen code={code} onBack={onBack} />;
+  if (!result.ok) return <ErrorScreen code={code} reason={result.reason} onBack={onBack} onRetry={load} />;
+  return <TrackingView pkg={result.pkg} code={code} onBack={onBack} onAdmin={onAdmin} />;
 }
 
 // ─── Timeline panel ───────────────────────────────────────────────────────────
@@ -309,7 +359,7 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
 // ─── Main TrackingView ────────────────────────────────────────────────────────
 
 function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; onBack: () => void; onAdmin: () => void }) {
-  const route = pkg.route as [number, number][];
+  const route = normalizeRoute(pkg.route as WaypointRaw[]);
   const fullPath = interpolateRoute(route, TOTAL);
   const startIdx = Math.min(Math.floor(pkg.start_progress * (TOTAL - 1)), TOTAL - 1);
 
