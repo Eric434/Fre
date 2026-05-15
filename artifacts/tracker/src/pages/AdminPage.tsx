@@ -89,11 +89,8 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-6">
-            <svg viewBox="0 0 100 120" className="w-6 h-7 text-red-600" fill="none">
-              <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
-                stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+          <div className="flex flex-col items-center gap-3 mb-6">
+            <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-16 h-16 object-contain drop-shadow-[0_0_16px_rgba(220,38,38,0.45)]" />
             <span className="text-sm font-semibold tracking-widest uppercase">
               Tesla<span className="text-red-500">Track</span>
             </span>
@@ -456,10 +453,7 @@ export default function AdminPage({
             </button>
             <div className="w-px h-4 bg-white/8" />
             <div className="flex items-center gap-2">
-              <svg viewBox="0 0 100 120" className="w-4 h-5 text-red-600" fill="none">
-                <path d="M50 10 L50 110 M5 10 Q5 30 50 35 Q95 30 95 10 M5 10 Q25 5 50 5 Q75 5 95 10"
-                  stroke="currentColor" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-8 h-8 object-contain" />
               <span className="text-xs font-semibold tracking-widest uppercase">
                 Tesla<span className="text-red-500">Track</span>
                 <span className="text-white/20 ml-2 font-normal">Admin</span>

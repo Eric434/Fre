@@ -88,7 +88,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
       {/* ─── NAV ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b border-white/6 bg-[#0a0a0a]/92 backdrop-blur-md">
         <div className="flex items-center gap-2.5">
-          <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-7 h-7 object-contain" />
+          <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-10 h-10 object-contain" />
           <span className="text-sm font-semibold tracking-widest uppercase text-white/90">
             Tesla<span className="text-red-500">Track</span>
           </span>
@@ -114,6 +114,11 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
         </div>
 
         <div className="hero-glow w-[700px] h-[500px] bg-blue-600/10 animate-glow-blue top-20 left-1/2 -translate-x-1/2 z-0" />
+
+        {/* Big spinning hero logo */}
+        <div className="relative z-10 mb-6 animate-slide-up">
+          <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-24 h-24 md:w-28 md:h-28 object-contain drop-shadow-[0_0_24px_rgba(220,38,38,0.5)]" />
+        </div>
 
         {/* Live badge */}
         <div className="relative z-10 flex items-center gap-2 px-4 py-1.5 mb-8 rounded-full border border-blue-500/25 bg-blue-500/6 backdrop-blur-sm animate-slide-up">
@@ -330,7 +335,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
       <footer className="border-t border-white/6 bg-[#0a0a0a]">
         <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-5 h-5 object-contain opacity-60" />
+            <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-8 h-8 object-contain opacity-70" />
             <span className="text-xs font-semibold tracking-widest uppercase text-white/50">
               Tesla<span className="text-red-500/70">Track</span>
             </span>

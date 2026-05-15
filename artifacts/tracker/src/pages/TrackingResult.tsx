@@ -725,7 +725,7 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
                 <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
               </button>
               <div className="w-px h-4 bg-white/10 flex-shrink-0" />
-              <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-5 h-5 object-contain flex-shrink-0" />
+              <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-8 h-8 object-contain flex-shrink-0" />
               <code className="text-[11px] font-mono text-white/50 truncate max-w-[120px] sm:max-w-none">{code}</code>
             </div>
             <div className="flex items-center gap-2.5 flex-shrink-0">
@@ -837,7 +837,10 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
         </div>
 
         <div className="px-5 py-3 border-t border-white/6 flex-shrink-0 flex items-center justify-between">
-          <span className="text-[9px] text-white/15 uppercase tracking-widest">TeslaTrack</span>
+          <div className="flex items-center gap-2">
+            <img src="/tesla-logo.png" alt="TeslaTrack" className="logo-spin w-6 h-6 object-contain opacity-50" />
+            <span className="text-[9px] text-white/20 uppercase tracking-widest font-semibold">TeslaTrack</span>
+          </div>
           <button onClick={onAdmin}
             className="text-[9px] text-white/20 hover:text-white/45 transition-colors px-2 py-1 rounded border border-white/6 hover:border-white/15">
             Admin
