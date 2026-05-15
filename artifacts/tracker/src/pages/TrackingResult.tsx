@@ -104,7 +104,34 @@ function getMilestoneIndex(status: string): number {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TOTAL = 200;
-const STEP_MS = 4500;
+
+/**
+ * Derive a per-step interval (ms) from the package ETA so the car moves
+ * proportionally to real remaining time.
+ *
+ * Strategy: compress real time by COMPRESSION (1 real second ≈ COMPRESSION
+ * seconds of transit time) so the car is always visibly moving but much
+ * slower when many days remain than when only hours remain.
+ *
+ * COMPRESSION = 200 means:
+ *   3 days remaining  → ~12 s/step  (slow crawl)
+ *   12 h remaining    → ~2.9 s/step
+ *   2 h remaining     → 500 ms/step (capped minimum)
+ */
+function computeStepMs(eta: string, startProgress: number): number {
+  const etaDate = new Date(eta);
+  const now = new Date();
+  const remainingMs = etaDate.getTime() - now.getTime();
+  if (remainingMs <= 0) return 500;
+
+  const startIdx = Math.floor(Math.min(startProgress, 0.999) * (TOTAL - 1));
+  const remainingSteps = Math.max(TOTAL - 1 - startIdx, 1);
+
+  const COMPRESSION = 200;
+  const stepMs = remainingMs / COMPRESSION / remainingSteps;
+
+  return Math.max(500, Math.min(30_000, stepMs));
+}
 
 type DrawerTab = "timeline" | "alerts" | "docs";
 interface Props { code: string; onBack: () => void; onAdmin: () => void; }
@@ -447,6 +474,131 @@ function NotificationsPanel({ pkg, trackingCode, simSpeed, secsAgo, playing }: {
   );
 }
 
+// ─── Document printing ────────────────────────────────────────────────────────
+
+function printDocument(doc: { name: string; desc: string; ref: string; pages: number }, pkg: Pkg, code: string) {
+  const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const refNo = `${doc.ref}-${code.slice(-3)}-${Date.now().toString(36).toUpperCase().slice(-4)}`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${doc.name} — ${code}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; padding: 40px; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 24px; }
+    .logo { font-size: 18px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+    .logo span { color: #dc2626; }
+    .doc-title { font-size: 20px; font-weight: 300; color: #111; margin-bottom: 4px; }
+    .doc-subtitle { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.12em; }
+    .ref-block { text-align: right; font-size: 10px; color: #888; line-height: 1.7; }
+    .ref-block strong { color: #111; font-size: 11px; }
+    .section { margin-bottom: 24px; }
+    .section-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #888; border-bottom: 1px solid #e5e5e5; padding-bottom: 4px; margin-bottom: 12px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; }
+    .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .field { margin-bottom: 2px; }
+    .field-label { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+    .field-value { font-size: 11px; color: #111; font-weight: 500; }
+    .tracking-code { font-family: monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em; color: #111; border: 2px solid #111; display: inline-block; padding: 8px 20px; margin: 12px 0; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; }
+    .badge-green { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+    .badge-blue { background: #eff6ff; border: 1px solid #93c5fd; color: #1d4ed8; }
+    .badge-yellow { background: #fefce8; border: 1px solid #fde047; color: #854d0e; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; border-bottom: 1px solid #e5e5e5; padding: 6px 8px; text-align: left; }
+    td { font-size: 11px; padding: 8px 8px; border-bottom: 1px solid #f5f5f5; }
+    .footer { margin-top: 40px; border-top: 1px solid #e5e5e5; padding-top: 16px; display: flex; justify-content: space-between; font-size: 9px; color: #aaa; }
+    .sig-block { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; }
+    .sig-line { border-top: 1px solid #111; padding-top: 6px; font-size: 9px; color: #888; }
+    @media print { body { padding: 24px; } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">Tesla<span>Track</span></div>
+      <div style="font-size:9px;color:#888;margin-top:4px;letter-spacing:0.1em;">PRECISION FLEET LOGISTICS</div>
+    </div>
+    <div class="ref-block">
+      <strong>${doc.name.toUpperCase()}</strong><br/>
+      Ref: ${refNo}<br/>
+      Issued: ${now}<br/>
+      Pages: ${doc.pages}
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="doc-title">${doc.name}</div>
+    <div class="doc-subtitle">${doc.desc}</div>
+    <div class="tracking-code">${code}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Shipment Details</div>
+    <div class="grid">
+      <div class="field"><div class="field-label">Origin</div><div class="field-value">${pkg.origin}</div></div>
+      <div class="field"><div class="field-label">Destination</div><div class="field-value">${pkg.destination}</div></div>
+      <div class="field"><div class="field-label">Carrier</div><div class="field-value">${pkg.carrier || "Tesla Express"}</div></div>
+      <div class="field"><div class="field-label">Weight</div><div class="field-value">${pkg.weight || "—"}</div></div>
+      <div class="field"><div class="field-label">Status</div><div class="field-value"><span class="badge badge-blue">${pkg.status}</span></div></div>
+      <div class="field"><div class="field-label">ETA</div><div class="field-value">${pkg.eta}</div></div>
+    </div>
+  </div>
+
+  ${(pkg.sender_name || pkg.receiver_name) ? `
+  <div class="section">
+    <div class="section-title">Parties</div>
+    <div class="grid">
+      <div>
+        <div class="field-label" style="margin-bottom:6px;">Sender / Shipper</div>
+        <div class="field-value">${pkg.sender_name || "—"}</div>
+        ${pkg.sender_address ? `<div style="font-size:10px;color:#555;margin-top:2px;">${pkg.sender_address}</div>` : ""}
+        ${pkg.sender_email ? `<div style="font-size:10px;color:#555;">${pkg.sender_email}</div>` : ""}
+        ${pkg.sender_phone ? `<div style="font-size:10px;color:#555;">${pkg.sender_phone}</div>` : ""}
+      </div>
+      <div>
+        <div class="field-label" style="margin-bottom:6px;">Receiver / Consignee</div>
+        <div class="field-value">${pkg.receiver_name || "—"}</div>
+        ${pkg.receiver_address ? `<div style="font-size:10px;color:#555;margin-top:2px;">${pkg.receiver_address}</div>` : ""}
+        ${pkg.receiver_email ? `<div style="font-size:10px;color:#555;">${pkg.receiver_email}</div>` : ""}
+        ${pkg.receiver_phone ? `<div style="font-size:10px;color:#555;">${pkg.receiver_phone}</div>` : ""}
+      </div>
+    </div>
+  </div>` : ""}
+
+  <div class="section">
+    <div class="section-title">Financials & Customs</div>
+    <div class="grid grid-3">
+      <div class="field"><div class="field-label">Shipping Cost</div><div class="field-value">$${Number(pkg.shipping_cost || 0).toFixed(2)}</div></div>
+      <div class="field"><div class="field-label">Customs Fee</div><div class="field-value">$${Number(pkg.customs_fee || 0).toFixed(2)}</div></div>
+      <div class="field"><div class="field-label">Customs Status</div><div class="field-value"><span class="badge ${pkg.customs_status === "Cleared" ? "badge-green" : "badge-yellow"}">${pkg.customs_status || "Pending"}</span></div></div>
+    </div>
+  </div>
+
+  <div class="sig-block">
+    <div class="sig-line">Authorized Signature</div>
+    <div class="sig-line">Carrier Stamp</div>
+    <div class="sig-line">Date</div>
+  </div>
+
+  <div class="footer">
+    <span>TeslaTrack · Precision Fleet Logistics · ${refNo}</span>
+    <span>Generated ${now} · This document is system-generated</span>
+  </div>
+</body>
+</html>`;
+
+  const win = window.open("", "_blank", "width=820,height=1060");
+  if (!win) return;
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 400);
+}
+
 // ─── Document Vault panel ─────────────────────────────────────────────────────
 
 const DOCUMENTS = [
@@ -487,7 +639,7 @@ const DOCUMENTS = [
   },
 ];
 
-function DocumentsPanel({ code }: { code: string }) {
+function DocumentsPanel({ code, pkg }: { code: string; pkg: Pkg }) {
   return (
     <div className="flex flex-col h-full overflow-y-auto">
       <div className="p-5 border-b border-white/6 flex-shrink-0">
@@ -536,8 +688,8 @@ function DocumentsPanel({ code }: { code: string }) {
                 {doc.status === "available" ? (
                   <button
                     className="flex items-center gap-1 text-[9px] text-blue-400/70 hover:text-blue-400 transition-colors"
-                    onClick={() => alert(`Document download requires a production deployment. Ref: ${doc.ref}-${code.slice(-3)}`)}>
-                    <Download className="w-2.5 h-2.5" /> PDF
+                    onClick={() => printDocument(doc, pkg, code)}>
+                    <Download className="w-2.5 h-2.5" /> Print / PDF
                   </button>
                 ) : (
                   <div className="flex items-center gap-1 text-[9px] text-white/18">
@@ -588,6 +740,8 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     return () => clearInterval(t);
   }, []);
 
+  const stepMs = computeStepMs(pkg.eta, pkg.start_progress);
+
   useEffect(() => {
     if (!playing || posIdx >= TOTAL - 1) return;
     const t = setInterval(() => {
@@ -600,9 +754,9 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
         return next;
       });
       setSecsAgo(0);
-    }, STEP_MS);
+    }, stepMs);
     return () => clearInterval(t);
-  }, [playing, posIdx, code]);
+  }, [playing, posIdx, code, stepMs]);
 
   useEffect(() => {
     const pos = fullPath[posIdx];
@@ -840,7 +994,7 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
               secsAgo={secsAgo} playing={playing}
             />
           )}
-          {drawerTab === "docs" && <DocumentsPanel code={code} />}
+          {drawerTab === "docs" && <DocumentsPanel code={code} pkg={pkg} />}
         </div>
 
         <div className="px-5 py-3 border-t border-white/6 flex-shrink-0 flex items-center justify-between">
