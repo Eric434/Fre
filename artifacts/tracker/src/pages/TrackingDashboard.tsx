@@ -459,7 +459,7 @@ export default function TrackingDashboard() {
 
           {/* Top left overlay */}
           <div className="absolute top-4 left-4 z-10">
-            <div className="bg-black/80 backdrop-blur border border-white/8 rounded-lg px-3 py-2 flex items-center gap-2">
+            <div className="bg-black/90 border border-white/8 rounded-lg px-3 py-2 flex items-center gap-2">
               <Navigation className="w-3.5 h-3.5 text-red-500" />
               <span className="text-xs text-white/60">
                 {selectedVehicle.name} · {selectedVehicle.location}
@@ -469,7 +469,7 @@ export default function TrackingDashboard() {
 
           {/* Driver info - top right */}
           <div className="absolute top-4 right-4 z-10">
-            <div className="bg-black/80 backdrop-blur border border-white/8 rounded-lg px-3 py-2">
+            <div className="bg-black/90 border border-white/8 rounded-lg px-3 py-2">
               <div className="text-[9px] text-white/30 uppercase tracking-wider mb-0.5">Driver</div>
               <div className="text-xs text-white/70">{selectedVehicle.driver}</div>
             </div>

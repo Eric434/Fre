@@ -1,6 +1,6 @@
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-6">
+    <div className="min-h-dvh bg-[#0a0a0a] text-white flex flex-col items-center justify-center px-6">
       <img
         src="/tesla-logo.png"
         alt="TeslaTrack"

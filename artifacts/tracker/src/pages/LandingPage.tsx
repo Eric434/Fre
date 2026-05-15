@@ -104,7 +104,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen px-4 pt-24 pb-16 overflow-hidden">
+      <section className="relative flex flex-col items-center justify-center min-h-dvh px-4 pt-24 pb-16 overflow-hidden">
         {/* Hero background car image */}
         <div className="absolute inset-0 z-0">
           <img src={heroCarImg} alt="" className="w-full h-full object-cover opacity-20"

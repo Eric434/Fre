@@ -157,7 +157,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
 // ─── Admin: update package ────────────────────────────────────────────────────
 
 router.put("/admin/packages/:code", requireAdmin, async (req, res) => {
-  const code = req.params.code.toUpperCase();
+  const code = (req.params.code as string).toUpperCase();
   const {
     status, eta, carrier, weight, speed_kph, start_progress, events,
     sender_name, sender_email, sender_phone, sender_address,
@@ -208,7 +208,7 @@ router.put("/admin/packages/:code", requireAdmin, async (req, res) => {
 // ─── Admin: delete package ────────────────────────────────────────────────────
 
 router.delete("/admin/packages/:code", requireAdmin, async (req, res) => {
-  const code = req.params.code.toUpperCase();
+  const code = (req.params.code as string).toUpperCase();
   try {
     await pool.query("DELETE FROM packages WHERE code = $1", [code]);
     res.json({ success: true });
