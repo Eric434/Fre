@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Lock, Plus, Trash2, LogOut, Package, ChevronRight, Loader2, AlertCircle,
   CheckCircle2, RefreshCw, X, Eye, LayoutDashboard, CreditCard, FileText,
@@ -618,8 +618,9 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
 
 // ─── Dashboard Tab ────────────────────────────────────────────────────────────
 
-function DashboardTab({ packages, onCreateNew, onRefresh, loading }: {
+function DashboardTab({ packages, onCreateNew, onRefresh, loading, onNavigate }: {
   packages: Pkg[]; onCreateNew: () => void; onRefresh: () => void; loading: boolean;
+  onNavigate: (tab: AdminTab) => void;
 }) {
   const total = packages.length;
   const inTransit = packages.filter((p) => p.status === "In Transit").length;
@@ -789,8 +790,8 @@ function DashboardTab({ packages, onCreateNew, onRefresh, loading }: {
         {[
           { label: "New Shipment", icon: Plus, action: onCreateNew, primary: true },
           { label: "Refresh Data", icon: RefreshCw, action: onRefresh, primary: false },
-          { label: "GPS Tracking", icon: Globe, action: () => {}, primary: false },
-          { label: "Notifications", icon: Bell, action: () => {}, primary: false },
+          { label: "GPS Tracking", icon: Globe, action: () => onNavigate("shipments"), primary: false },
+          { label: "Notifications", icon: Bell, action: () => onNavigate("support"), primary: false },
         ].map(({ label, icon: Icon, action, primary }) => (
           <button key={label} onClick={action}
             className={`flex items-center justify-center gap-2 py-3 rounded-xl border text-xs font-medium transition-all ${
@@ -961,6 +962,45 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
 
 // ─── Payments Tab ─────────────────────────────────────────────────────────────
 
+function printInvoice(pkg: Pkg, invNum: string, isPaid: boolean) {
+  const win = window.open("", "_blank", "width=800,height=600");
+  if (!win) return;
+  const amount = Number(pkg.shipping_cost || 0).toFixed(2);
+  win.document.write(`<!DOCTYPE html><html><head><title>${invNum}</title>
+  <style>body{font-family:Arial,sans-serif;color:#111;padding:40px;max-width:700px;margin:0 auto}
+  h1{font-size:28px;font-weight:700;margin-bottom:4px}
+  .sub{color:#666;font-size:14px;margin-bottom:32px}
+  .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;font-size:14px}
+  .label{color:#666}.value{font-weight:600}
+  .badge{display:inline-block;padding:4px 12px;border-radius:100px;font-size:12px;font-weight:600;
+    background:${isPaid ? "#dcfce7" : "#fef9c3"};color:${isPaid ? "#15803d" : "#a16207"}}
+  .total{font-size:22px;font-weight:700;color:#111;margin-top:24px}
+  .footer{color:#999;font-size:11px;margin-top:48px;border-top:1px solid #eee;padding-top:16px}
+  @media print{button{display:none}}</style></head>
+  <body>
+  <h1>TeslaTrack</h1>
+  <div class="sub">Shipping Invoice</div>
+  <div style="display:flex;justify-content:space-between;margin-bottom:24px">
+    <div><div style="font-size:20px;font-weight:700">${invNum}</div><div style="color:#666;font-size:13px">Ref: ${pkg.code}</div></div>
+    <div class="badge">${isPaid ? "PAID" : "PENDING"}</div>
+  </div>
+  <div class="row"><span class="label">Tracking Code</span><span class="value" style="font-family:monospace">${pkg.code}</span></div>
+  <div class="row"><span class="label">From</span><span class="value">${pkg.origin}</span></div>
+  <div class="row"><span class="label">To</span><span class="value">${pkg.destination}</span></div>
+  ${pkg.sender_name ? `<div class="row"><span class="label">Sender</span><span class="value">${pkg.sender_name}</span></div>` : ""}
+  ${pkg.receiver_name ? `<div class="row"><span class="label">Recipient</span><span class="value">${pkg.receiver_name}</span></div>` : ""}
+  <div class="row"><span class="label">Delivery Method</span><span class="value">${pkg.delivery_method || "Standard"}</span></div>
+  <div class="row"><span class="label">Status</span><span class="value">${pkg.status}</span></div>
+  <div class="row"><span class="label">ETA</span><span class="value">${pkg.eta || "—"}</span></div>
+  <div class="total">Total: $${amount}</div>
+  <div style="margin-top:8px"><button onclick="window.print()" style="padding:10px 24px;background:#111;color:#fff;border:none;border-radius:6px;font-size:14px;cursor:pointer">Print / Save PDF</button></div>
+  <div class="footer">TeslaTrack Logistics · Generated ${new Date().toLocaleDateString()}</div>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 400);
+}
+
 function PaymentsTab({ packages }: { packages: Pkg[] }) {
   const total = packages.reduce((s, p) => s + Number(p.shipping_cost || 0), 0);
   const paid = packages.filter((p) => p.status === "Delivered").reduce((s, p) => s + Number(p.shipping_cost || 0), 0);
@@ -1019,7 +1059,9 @@ function PaymentsTab({ packages }: { packages: Pkg[] }) {
                     <span className={`text-[10px] px-2 py-0.5 rounded-full border ${isPaid ? "text-green-400 bg-green-500/10 border-green-500/25" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/25"}`}>
                       {isPaid ? "Paid" : "Pending"}
                     </span>
-                    <button className="flex items-center gap-1 text-[10px] text-white/25 hover:text-white/60 transition-colors">
+                    <button
+                      onClick={() => printInvoice(pkg, invNum, isPaid)}
+                      className="flex items-center gap-1 text-[10px] text-white/25 hover:text-white/60 transition-colors">
                       <Download className="w-3 h-3" /> PDF
                     </button>
                   </div>
@@ -1063,6 +1105,23 @@ function CustomsTab({ packages }: { packages: Pkg[] }) {
   const inReview = packages.filter((p) => p.customs_status === "In Review").length;
   const pending = packages.filter((p) => p.customs_status === "Pending").length;
   const totalFees = packages.reduce((s, p) => s + Number(p.customs_fee || 0), 0);
+  const [uploadedDocs, setUploadedDocs] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingDoc, setPendingDoc] = useState<string | null>(null);
+
+  const handleUploadClick = (docName: string) => {
+    setPendingDoc(docName);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && pendingDoc) {
+      setUploadedDocs((prev) => ({ ...prev, [pendingDoc]: file.name }));
+    }
+    e.target.value = "";
+    setPendingDoc(null);
+  };
 
   const DOCS = [
     { name: "Commercial Invoice", desc: "Value declaration form", required: true },
@@ -1125,19 +1184,32 @@ function CustomsTab({ packages }: { packages: Pkg[] }) {
           <FileText className="w-4 h-4 text-white/30" />
           <span className="text-sm font-medium text-white/70">Required Customs Documents</span>
         </div>
+        <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.jpg,.png" className="hidden" onChange={handleFileChange} />
         <div className="space-y-2">
           {DOCS.map(({ name, desc, required }) => (
-            <div key={name} className="flex items-center justify-between p-3 bg-white/3 rounded-lg border border-white/5">
-              <div className="flex items-center gap-3">
-                <FileText className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
-                <div>
+            <div key={name} className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+              uploadedDocs[name] ? "bg-green-500/5 border-green-500/20" : "bg-white/3 border-white/5"
+            }`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${uploadedDocs[name] ? "text-green-400" : "text-white/25"}`} />
+                <div className="min-w-0">
                   <div className="text-xs text-white/60">{name}</div>
-                  <div className="text-[9px] text-white/25">{desc}</div>
+                  {uploadedDocs[name]
+                    ? <div className="text-[9px] text-green-400/70 truncate max-w-[160px]">{uploadedDocs[name]}</div>
+                    : <div className="text-[9px] text-white/25">{desc}</div>
+                  }
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {required && <span className="text-[9px] text-red-400/70 bg-red-500/8 px-1.5 py-0.5 rounded-full">Required</span>}
-                <button className="text-[10px] text-white/25 hover:text-white/60 border border-white/10 rounded px-2 py-0.5 transition-colors">Upload</button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {required && !uploadedDocs[name] && <span className="text-[9px] text-red-400/70 bg-red-500/8 px-1.5 py-0.5 rounded-full">Required</span>}
+                {uploadedDocs[name]
+                  ? <span className="text-[9px] text-green-400 bg-green-500/10 border border-green-500/25 px-2 py-0.5 rounded-full">✓ Uploaded</span>
+                  : <button
+                      onClick={() => handleUploadClick(name)}
+                      className="text-[10px] text-white/25 hover:text-white/60 border border-white/10 hover:border-white/25 rounded px-2 py-0.5 transition-colors">
+                      Upload
+                    </button>
+                }
               </div>
             </div>
           ))}
@@ -1532,7 +1604,7 @@ export default function AdminPage({ onBack, onTrack }: { onBack: () => void; onT
             </div>
 
             {tab === "dashboard" && (
-              <DashboardTab packages={packages} onCreateNew={() => setShowCreate(true)} onRefresh={loadPackages} loading={loading} />
+              <DashboardTab packages={packages} onCreateNew={() => setShowCreate(true)} onRefresh={loadPackages} loading={loading} onNavigate={setTab} />
             )}
             {tab === "shipments" && (
               <ShipmentsTab packages={packages} token={token} loading={loading} onRefresh={loadPackages} onTrack={onTrack} onCreateNew={() => setShowCreate(true)} showToast={showToast} />

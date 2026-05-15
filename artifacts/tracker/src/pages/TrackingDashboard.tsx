@@ -135,6 +135,12 @@ export default function TrackingDashboard() {
   const [selectedVehicle, setSelectedVehicle] = useState(VEHICLES[0]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [sidebarTab, setSidebarTab] = useState<"fleet" | "alerts">("fleet");
+  const [controlFeedback, setControlFeedback] = useState<string | null>(null);
+
+  const triggerControl = (label: string) => {
+    setControlFeedback(label);
+    setTimeout(() => setControlFeedback(null), 2000);
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -546,6 +552,12 @@ export default function TrackingDashboard() {
             <div className="text-[9px] text-white/30 uppercase tracking-widest mb-3">
               Quick Controls
             </div>
+            {controlFeedback && (
+              <div className="mb-2 px-3 py-1.5 bg-green-600/15 border border-green-500/30 rounded-lg text-[10px] text-green-300 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0" />
+                {controlFeedback} — Command sent
+              </div>
+            )}
             <div className="space-y-2">
               {[
                 { label: "Flash Lights", icon: "⚡" },
@@ -555,12 +567,22 @@ export default function TrackingDashboard() {
               ].map((ctrl) => (
                 <button
                   key={ctrl.label}
-                  className="w-full flex items-center gap-2.5 px-3 py-2 bg-white/4 hover:bg-white/8 border border-white/6 hover:border-red-600/30 rounded-lg transition-all text-left group"
+                  onClick={() => triggerControl(ctrl.label)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 border rounded-lg transition-all text-left group ${
+                    controlFeedback === ctrl.label
+                      ? "bg-green-600/10 border-green-500/30 text-green-300"
+                      : "bg-white/4 hover:bg-white/8 border-white/6 hover:border-red-600/30"
+                  }`}
                 >
                   <span className="text-sm">{ctrl.icon}</span>
-                  <span className="text-[10px] text-white/50 group-hover:text-white/80 transition-colors">
+                  <span className={`text-[10px] transition-colors ${
+                    controlFeedback === ctrl.label ? "text-green-300" : "text-white/50 group-hover:text-white/80"
+                  }`}>
                     {ctrl.label}
                   </span>
+                  {controlFeedback === ctrl.label && (
+                    <span className="ml-auto text-[8px] text-green-400">✓ Sent</span>
+                  )}
                 </button>
               ))}
             </div>
