@@ -83,7 +83,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
   const handleSubmit = () => { const v = query.trim().toUpperCase(); if (v) onTrack(v); };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white" ref={topRef}>
+    <div className="min-h-dvh bg-[#0a0a0a] text-white" ref={topRef}>
 
       {/* ─── NAV ─── */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-3 md:py-4 border-b border-white/6 bg-[#0a0a0a]/92 backdrop-blur-md">
