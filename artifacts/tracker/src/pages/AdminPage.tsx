@@ -6,6 +6,8 @@ import {
   DollarSign, Shield, Globe, Zap, Bell, Clock, TrendingUp, BarChart3,
   Download, ChevronDown, ChevronUp, Send, HelpCircle,
   Wifi, Star, QrCode, Languages, Search,
+  Plane, Ship, Pencil, AlertTriangle, Anchor, PauseCircle, PlayCircle,
+  StickyNote, History,
 } from "lucide-react";
 import {
   adminLogin, adminListPackages, adminCreatePackage,
@@ -18,42 +20,100 @@ type AdminTab = "dashboard" | "shipments" | "payments" | "customs" | "support" |
 
 // ─── Route presets ────────────────────────────────────────────────────────────
 
-const ROUTE_PRESETS: Record<string, { label: string; route: [number, number][]; origin: string; destination: string }> = {
+type RoutePreset = { label: string; route: [number, number][]; origin: string; destination: string; cargoHint?: "air" | "sea" | "road" };
+const ROUTE_PRESETS: Record<string, RoutePreset> = {
+  // ── Ground / Domestic ──────────────────────────────────────────────────────
   sj_sf: {
-    label: "San Jose → San Francisco",
-    origin: "San Jose, CA",
-    destination: "San Francisco, CA",
+    label: "🚛 San Jose → San Francisco",
+    origin: "San Jose, CA", destination: "San Francisco, CA",
     route: [[37.3382,-121.8863],[37.4,-121.92],[37.45,-121.95],[37.51,-121.97],[37.55,-121.98],[37.59,-122.05],[37.63,-122.12],[37.68,-122.19],[37.72,-122.27],[37.75,-122.35],[37.7749,-122.4194]],
   },
   la_sf: {
-    label: "Los Angeles → San Francisco",
-    origin: "Los Angeles, CA",
-    destination: "San Francisco, CA",
+    label: "🚛 Los Angeles → San Francisco",
+    origin: "Los Angeles, CA", destination: "San Francisco, CA",
     route: [[34.0522,-118.2437],[34.6,-118.6],[35.2,-119.0],[35.65,-119.3],[35.9,-119.5],[36.3,-119.8],[36.7,-120.1],[37.1,-120.6],[37.4,-121.1],[37.6,-121.9],[37.7749,-122.4194]],
   },
   portland_sf: {
-    label: "Portland → toSan Francisco",
-    origin: "Portland, OR",
-    destination: "San Francisco, CA",
+    label: "🚛 Portland → San Francisco",
+    origin: "Portland, OR", destination: "San Francisco, CA",
     route: [[45.5051,-122.675],[44.0,-122.3],[42.8,-122.0],[41.5,-122.15],[40.3,-122.3],[39.2,-122.4],[38.5,-122.5],[38.0,-122.48],[37.7749,-122.4194]],
   },
   seattle_la: {
-    label: "Seattle → Los Angeles",
-    origin: "Seattle, WA",
-    destination: "Los Angeles, CA",
+    label: "🚛 Seattle → Los Angeles",
+    origin: "Seattle, WA", destination: "Los Angeles, CA",
     route: [[47.6062,-122.3321],[46.2,-122.0],[44.5,-121.5],[42.5,-121.0],[40.5,-120.5],[38.5,-119.8],[36.5,-119.0],[35.0,-118.5],[34.0522,-118.2437]],
   },
   ny_la: {
-    label: "New York → Los Angeles",
-    origin: "New York, NY",
-    destination: "Los Angeles, CA",
+    label: "🚛 New York → Los Angeles",
+    origin: "New York, NY", destination: "Los Angeles, CA",
     route: [[40.7128,-74.006],[39.9,-76.5],[38.5,-79.0],[36.5,-82.0],[35.2,-86.0],[33.5,-89.5],[32.0,-93.5],[31.5,-97.5],[32.0,-101.5],[33.0,-106.0],[34.0522,-118.2437]],
   },
   miami_chicago: {
-    label: "Miami → Chicago",
-    origin: "Miami, FL",
-    destination: "Chicago, IL",
+    label: "🚛 Miami → Chicago",
+    origin: "Miami, FL", destination: "Chicago, IL",
     route: [[25.7617,-80.1918],[27.5,-81.5],[29.5,-82.0],[31.5,-83.0],[33.5,-84.4],[35.5,-85.5],[37.0,-86.5],[39.0,-87.5],[41.8781,-87.6298]],
+  },
+  // ── Air Cargo ─────────────────────────────────────────────────────────────
+  nyc_london_air: {
+    label: "✈ New York → London (Air)",
+    origin: "New York, USA", destination: "London, United Kingdom",
+    cargoHint: "air",
+    route: [[40.64,-73.78],[43,-65],[46,-55],[49,-44],[51,-32],[52,-18],[52,-8],[51.47,-0.45]],
+  },
+  lax_tokyo_air: {
+    label: "✈ Los Angeles → Tokyo (Air)",
+    origin: "Los Angeles, USA", destination: "Tokyo, Japan",
+    cargoHint: "air",
+    route: [[33.94,-118.41],[38,-135],[43,-155],[47,-170],[50,175],[48,160],[43,148],[35.76,140.39]],
+  },
+  dubai_london_air: {
+    label: "✈ Dubai → London (Air)",
+    origin: "Dubai, UAE", destination: "London, United Kingdom",
+    cargoHint: "air",
+    route: [[25.25,55.37],[30,50],[35,42],[38,32],[42,22],[46,12],[50,2],[51.47,-0.45]],
+  },
+  miami_paris_air: {
+    label: "✈ Miami → Paris (Air)",
+    origin: "Miami, USA", destination: "Paris, France",
+    cargoHint: "air",
+    route: [[25.76,-80.19],[28,-70],[32,-58],[36,-48],[40,-36],[44,-25],[47,-13],[48.86,2.35]],
+  },
+  sg_london_air: {
+    label: "✈ Singapore → London (Air)",
+    origin: "Singapore", destination: "London, United Kingdom",
+    cargoHint: "air",
+    route: [[1.36,103.82],[8,96],[14,82],[20,68],[26,54],[32,40],[38,26],[44,14],[50,4],[51.47,-0.45]],
+  },
+  // ── Sea Cargo ─────────────────────────────────────────────────────────────
+  la_shanghai_sea: {
+    label: "🚢 Los Angeles → Shanghai (Sea)",
+    origin: "Los Angeles, USA", destination: "Shanghai, China",
+    cargoHint: "sea",
+    route: [[33.7,-118.3],[28,-120],[22,-125],[15,-130],[5,-140],[5,160],[12,145],[22,133],[31.23,121.47]],
+  },
+  rotterdam_nyc_sea: {
+    label: "🚢 Rotterdam → New York (Sea)",
+    origin: "Rotterdam, Netherlands", destination: "New York, USA",
+    cargoHint: "sea",
+    route: [[51.92,4.48],[50,-5],[47,-15],[45,-25],[43,-35],[42,-45],[42,-57],[42,-65],[40.69,-74.04]],
+  },
+  singapore_dubai_sea: {
+    label: "🚢 Singapore → Dubai (Sea)",
+    origin: "Singapore", destination: "Dubai, UAE",
+    cargoHint: "sea",
+    route: [[1.36,103.8],[5,100],[8,90],[10,80],[12,72],[18,65],[22,60],[25.25,55.37]],
+  },
+  miami_london_sea: {
+    label: "🚢 Miami → London (Sea)",
+    origin: "Miami, USA", destination: "London, United Kingdom",
+    cargoHint: "sea",
+    route: [[25.76,-80.19],[28,-76],[32,-70],[36,-63],[40,-54],[44,-40],[47,-25],[49,-12],[51.47,-0.45]],
+  },
+  dubai_la_sea: {
+    label: "🚢 Dubai → Los Angeles (Sea)",
+    origin: "Dubai, UAE", destination: "Los Angeles, USA",
+    cargoHint: "sea",
+    route: [[25.25,55.37],[22,62],[18,68],[12,75],[5,80],[2,95],[5,110],[3,125],[-2,140],[-5,155],[-2,170],[5,-175],[12,-160],[20,-145],[28,-130],[33.7,-118.3]],
   },
 };
 
@@ -63,6 +123,17 @@ function generateCode() {
   const r = (s: string, n: number) => Array.from({ length: n }, () => s[Math.floor(Math.random() * s.length)]).join("");
   return `TSL-${r(nums, 4)}-${r(chars, 2)}`;
 }
+
+const ALL_STATUSES = [
+  "Pending","Processing","In Transit","At Airport","At Seaport",
+  "Customs Clearance","Out for Delivery","Delivered","Delayed","On Hold","Cancelled",
+];
+
+const CARGO_TYPES = [
+  { value: "road", label: "🚛 Ground / Road", icon: "🚛" },
+  { value: "air",  label: "✈ Air Cargo",      icon: "✈" },
+  { value: "sea",  label: "🚢 Sea Freight",    icon: "🚢" },
+];
 
 function blankForm() {
   return {
@@ -79,6 +150,9 @@ function blankForm() {
     shipping_cost: 49.99,
     customs_status: "Pending",
     customs_fee: 0,
+    cargo_type: "road",
+    notes: "",
+    paused: false,
     sender_name: "",
     sender_email: "",
     sender_phone: "",
@@ -101,17 +175,39 @@ function blankForm() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }: { status: string }) {
+function statusCls(status: string) {
   const s = status.toLowerCase();
-  const cls =
-    s === "delivered" ? "text-green-400 bg-green-500/10 border-green-500/25" :
-    s === "out for delivery" ? "text-orange-400 bg-orange-500/10 border-orange-500/25" :
-    s === "in transit" ? "text-blue-400 bg-blue-500/10 border-blue-500/25" :
-    s === "customs clearance" ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/25" :
-    "text-white/40 bg-white/5 border-white/10";
+  return s === "delivered"         ? "text-green-400 bg-green-500/10 border-green-500/25" :
+         s === "out for delivery"  ? "text-orange-400 bg-orange-500/10 border-orange-500/25" :
+         s === "in transit"        ? "text-blue-400 bg-blue-500/10 border-blue-500/25" :
+         s === "at airport"        ? "text-sky-400 bg-sky-500/10 border-sky-500/25" :
+         s === "at seaport"        ? "text-cyan-400 bg-cyan-500/10 border-cyan-500/25" :
+         s === "customs clearance" ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/25" :
+         s === "delayed"           ? "text-red-400 bg-red-500/10 border-red-500/25" :
+         s === "on hold"           ? "text-purple-400 bg-purple-500/10 border-purple-500/25" :
+         s === "cancelled"         ? "text-red-300 bg-red-500/8 border-red-500/20 line-through" :
+         s === "processing"        ? "text-indigo-400 bg-indigo-500/10 border-indigo-500/25" :
+         "text-white/40 bg-white/5 border-white/10";
+}
+
+function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`inline-flex items-center text-[10px] px-2 py-0.5 rounded-full border font-medium ${cls}`}>
+    <span className={`inline-flex items-center text-[10px] px-2 py-0.5 rounded-full border font-medium ${statusCls(status)}`}>
       {status}
+    </span>
+  );
+}
+
+function CargoBadge({ type }: { type: string }) {
+  const map: Record<string, { label: string; cls: string; Icon: React.FC<{ className?: string }> }> = {
+    air:  { label: "Air Cargo",    cls: "text-sky-400 bg-sky-500/10 border-sky-500/20",    Icon: Plane  },
+    sea:  { label: "Sea Freight",  cls: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20", Icon: Ship   },
+    road: { label: "Ground",       cls: "text-white/40 bg-white/5 border-white/10",        Icon: Truck  },
+  };
+  const { label, cls, Icon } = map[type] ?? map["road"];
+  return (
+    <span className={`inline-flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full border font-medium ${cls}`}>
+      <Icon className="w-2.5 h-2.5" />{label}
     </span>
   );
 }
@@ -205,7 +301,10 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
 // ─── Shipment Detail Modal ────────────────────────────────────────────────────
 
 function ShipmentDetailModal({ pkg, onClose, onTrack }: { pkg: Pkg; onClose: () => void; onTrack: (c: string) => void }) {
-  const STATUS_STEPS = ["Order Received","Processing","In Transit","Customs Clearance","Out for Delivery","Delivered"];
+  const STATUS_STEPS = [
+    "Order Received","Processing","In Transit","At Airport","At Seaport",
+    "Customs Clearance","Out for Delivery","Delivered","Delayed","On Hold",
+  ];
   const currentStep = STATUS_STEPS.findIndex((s) => s.toLowerCase() === pkg.status.toLowerCase());
   const activeIdx = currentStep >= 0 ? currentStep : 2;
 
@@ -367,6 +466,7 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
       route: preset.route,
       delivery_method: form.delivery_method, shipping_cost: Number(form.shipping_cost),
       customs_status: form.customs_status, customs_fee: Number(form.customs_fee),
+      cargo_type: form.cargo_type, notes: form.notes, paused: form.paused,
       sender_name: form.sender_name, sender_email: form.sender_email,
       sender_phone: form.sender_phone, sender_address: form.sender_address,
       receiver_name: form.receiver_name, receiver_email: form.receiver_email,
@@ -425,9 +525,7 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
               <div>
                 <label className="field-label">Status</label>
                 <select value={form.status} onChange={(e) => set("status", e.target.value)} className="field-input">
-                  {["Processing","In Transit","Customs Clearance","Out for Delivery","Delivered"].map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
             </div>
@@ -449,6 +547,7 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
                 set("routePreset", e.target.value);
                 const p = ROUTE_PRESETS[e.target.value];
                 set("origin", p.origin); set("destination", p.destination);
+                if (p.cargoHint) set("cargo_type", p.cargoHint);
               }} className="field-input">
                 {Object.entries(ROUTE_PRESETS).map(([k, v]) => (
                   <option key={k} value={k}>{v.label}</option>
@@ -501,6 +600,27 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
             <div>
               <label className="field-label">Carrier</label>
               <input value={form.carrier} onChange={(e) => set("carrier", e.target.value)} className="field-input" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Cargo Type</label>
+                <select value={form.cargo_type} onChange={(e) => set("cargo_type", e.target.value)} className="field-input">
+                  {CARGO_TYPES.map((ct) => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Paused</label>
+                <div className="flex items-center gap-2 pt-1.5">
+                  <input type="checkbox" checked={form.paused} onChange={(e) => set("paused", e.target.checked)} className="w-4 h-4 accent-red-600 cursor-pointer" />
+                  <span className="text-[10px] text-white/40">Pause tracking animation</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Internal Notes</label>
+              <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)}
+                rows={2} placeholder="Optional admin notes about this shipment..."
+                className="field-input resize-none" />
             </div>
           </>}
 
@@ -608,6 +728,301 @@ function CreateModal({ token, onClose, onCreated }: { token: string; onClose: ()
               className="flex items-center gap-2 px-5 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-40 text-white text-xs font-medium transition-all">
               {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
               {loading ? "Creating…" : "Create Shipment"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Edit Modal ────────────────────────────────────────────────────────────────
+
+function EditModal({ pkg, token, onClose, onUpdated }: { pkg: Pkg; token: string; onClose: () => void; onUpdated: () => void }) {
+  const [form, setForm] = useState({
+    status: pkg.status,
+    eta: pkg.eta,
+    origin: pkg.origin,
+    destination: pkg.destination,
+    carrier: pkg.carrier,
+    weight: pkg.weight,
+    speed_kph: pkg.speed_kph,
+    start_progress: pkg.start_progress,
+    delivery_method: pkg.delivery_method || "Standard",
+    shipping_cost: pkg.shipping_cost,
+    customs_status: pkg.customs_status || "Pending",
+    customs_fee: pkg.customs_fee,
+    cargo_type: pkg.cargo_type || "road",
+    notes: pkg.notes || "",
+    paused: pkg.paused || false,
+    sender_name: pkg.sender_name || "",
+    sender_email: pkg.sender_email || "",
+    sender_phone: pkg.sender_phone || "",
+    sender_address: pkg.sender_address || "",
+    receiver_name: pkg.receiver_name || "",
+    receiver_email: pkg.receiver_email || "",
+    receiver_phone: pkg.receiver_phone || "",
+    receiver_address: pkg.receiver_address || "",
+    routePreset: "",
+    events: (pkg.events || []).map((e, i) => ({ ...e, sort_order: i })),
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [modalTab, setModalTab] = useState<"basic" | "sender" | "receiver" | "events">("basic");
+
+  const set = (k: string, v: unknown) => setForm((f) => ({ ...f, [k]: v }));
+
+  const handleSave = async () => {
+    setLoading(true); setError("");
+    const preset = form.routePreset ? ROUTE_PRESETS[form.routePreset] : null;
+    const result = await adminUpdatePackage(token, pkg.code, {
+      status: form.status, eta: form.eta,
+      origin: preset ? preset.origin : form.origin,
+      destination: preset ? preset.destination : form.destination,
+      carrier: form.carrier, weight: form.weight,
+      speed_kph: Number(form.speed_kph), start_progress: Number(form.start_progress),
+      ...(preset ? { route: preset.route } : {}),
+      delivery_method: form.delivery_method, shipping_cost: Number(form.shipping_cost),
+      customs_status: form.customs_status, customs_fee: Number(form.customs_fee),
+      cargo_type: form.cargo_type, notes: form.notes, paused: form.paused,
+      sender_name: form.sender_name, sender_email: form.sender_email,
+      sender_phone: form.sender_phone, sender_address: form.sender_address,
+      receiver_name: form.receiver_name, receiver_email: form.receiver_email,
+      receiver_phone: form.receiver_phone, receiver_address: form.receiver_address,
+      events: form.events.map((e, i) => ({ ...e, sort_order: i })),
+    } as Parameters<typeof adminUpdatePackage>[2]);
+    setLoading(false);
+    if (result.success) onUpdated();
+    else setError(result.error ?? "Failed to save");
+  };
+
+  const TABS = [
+    { id: "basic" as const, label: "Basic Info" },
+    { id: "sender" as const, label: "Sender" },
+    { id: "receiver" as const, label: "Receiver" },
+    { id: "events" as const, label: "Events" },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-white/8 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-blue-500" />
+            <span className="text-sm font-semibold text-white/90">Edit Shipment</span>
+            <code className="text-xs font-mono text-white/30 ml-1">{pkg.code}</code>
+          </div>
+          <button onClick={onClose} className="text-white/30 hover:text-white/70 transition-colors"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="flex border-b border-white/8 px-5 flex-shrink-0">
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setModalTab(t.id)}
+              className={`text-[11px] py-2.5 px-3 border-b-2 transition-all -mb-px ${
+                modalTab === t.id ? "border-blue-500 text-white/90" : "border-transparent text-white/30 hover:text-white/60"
+              }`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="overflow-y-auto flex-1 p-5 space-y-4">
+          {modalTab === "basic" && <>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Tracking Code</label>
+                <div className="bg-white/3 border border-white/6 rounded-lg px-3 py-2 text-xs font-mono text-white/30">{pkg.code}</div>
+              </div>
+              <div>
+                <label className="field-label">Status</label>
+                <select value={form.status} onChange={(e) => set("status", e.target.value)} className="field-input">
+                  {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">ETA</label>
+                <input value={form.eta} onChange={(e) => set("eta", e.target.value)} className="field-input" placeholder="Today, 4–7 PM" />
+              </div>
+              <div>
+                <label className="field-label">Weight</label>
+                <input value={form.weight} onChange={(e) => set("weight", e.target.value)} className="field-input" placeholder="2.4 kg" />
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Change Route (optional)</label>
+              <select value={form.routePreset} onChange={(e) => {
+                set("routePreset", e.target.value);
+                if (e.target.value) {
+                  const p = ROUTE_PRESETS[e.target.value];
+                  set("origin", p.origin); set("destination", p.destination);
+                  if (p.cargoHint) set("cargo_type", p.cargoHint);
+                }
+              }} className="field-input">
+                <option value="">— Keep existing route —</option>
+                {Object.entries(ROUTE_PRESETS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Origin</label>
+                <input value={form.origin} onChange={(e) => set("origin", e.target.value)} className="field-input" />
+              </div>
+              <div>
+                <label className="field-label">Destination</label>
+                <input value={form.destination} onChange={(e) => set("destination", e.target.value)} className="field-input" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Delivery Method</label>
+                <select value={form.delivery_method} onChange={(e) => set("delivery_method", e.target.value)} className="field-input">
+                  {["Standard","Express","Priority","Same-Day","Economy"].map((m) => <option key={m} value={m}>{m}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Shipping Cost ($)</label>
+                <input type="number" step="0.01" value={form.shipping_cost} onChange={(e) => set("shipping_cost", e.target.value)} className="field-input" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Customs Status</label>
+                <select value={form.customs_status} onChange={(e) => set("customs_status", e.target.value)} className="field-input">
+                  {["Pending","In Review","Cleared","Held"].map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Customs Fee ($)</label>
+                <input type="number" step="0.01" min="0" value={form.customs_fee} onChange={(e) => set("customs_fee", e.target.value)} className="field-input" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Speed (km/h)</label>
+                <input type="number" value={form.speed_kph} onChange={(e) => set("speed_kph", e.target.value)} className="field-input" />
+              </div>
+              <div>
+                <label className="field-label">Start Progress (0–1)</label>
+                <input type="number" step="0.01" min="0" max="1" value={form.start_progress} onChange={(e) => set("start_progress", e.target.value)} className="field-input" />
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Carrier</label>
+              <input value={form.carrier} onChange={(e) => set("carrier", e.target.value)} className="field-input" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Cargo Type</label>
+                <select value={form.cargo_type} onChange={(e) => set("cargo_type", e.target.value)} className="field-input">
+                  {CARGO_TYPES.map((ct) => <option key={ct.value} value={ct.value}>{ct.label}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="field-label">Paused</label>
+                <div className="flex items-center gap-2 pt-1.5">
+                  <input type="checkbox" checked={form.paused} onChange={(e) => set("paused", e.target.checked)} className="w-4 h-4 accent-red-600 cursor-pointer" />
+                  <span className="text-[10px] text-white/40">Pause tracking animation</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Internal Notes</label>
+              <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)}
+                rows={2} placeholder="Optional admin notes..." className="field-input resize-none" />
+            </div>
+          </>}
+          {modalTab === "sender" && <>
+            <p className="text-[10px] text-white/30">Who is sending this shipment?</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Full Name</label>
+                <input value={form.sender_name} onChange={(e) => set("sender_name", e.target.value)} className="field-input" placeholder="John Smith" />
+              </div>
+              <div>
+                <label className="field-label">Email</label>
+                <input type="email" value={form.sender_email} onChange={(e) => set("sender_email", e.target.value)} className="field-input" placeholder="john@example.com" />
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Phone</label>
+              <input value={form.sender_phone} onChange={(e) => set("sender_phone", e.target.value)} className="field-input" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div>
+              <label className="field-label">Full Address</label>
+              <input value={form.sender_address} onChange={(e) => set("sender_address", e.target.value)} className="field-input" placeholder="123 Main St, City, State ZIP" />
+            </div>
+          </>}
+          {modalTab === "receiver" && <>
+            <p className="text-[10px] text-white/30">Who will receive this shipment?</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="field-label">Full Name</label>
+                <input value={form.receiver_name} onChange={(e) => set("receiver_name", e.target.value)} className="field-input" placeholder="Jane Doe" />
+              </div>
+              <div>
+                <label className="field-label">Email</label>
+                <input type="email" value={form.receiver_email} onChange={(e) => set("receiver_email", e.target.value)} className="field-input" placeholder="jane@example.com" />
+              </div>
+            </div>
+            <div>
+              <label className="field-label">Phone</label>
+              <input value={form.receiver_phone} onChange={(e) => set("receiver_phone", e.target.value)} className="field-input" placeholder="+1 (555) 000-0000" />
+            </div>
+            <div>
+              <label className="field-label">Delivery Address</label>
+              <input value={form.receiver_address} onChange={(e) => set("receiver_address", e.target.value)} className="field-input" placeholder="456 Oak Ave, City, State ZIP" />
+            </div>
+          </>}
+          {modalTab === "events" && <>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[10px] text-white/30">Status updates shown on the tracking timeline</p>
+              <button onClick={() => set("events", [...form.events, { time_label: "", label: "", location: "", done: false, sort_order: form.events.length }])}
+                className="text-[10px] text-white/30 hover:text-white/60 flex items-center gap-1">
+                <Plus className="w-3 h-3" /> Add
+              </button>
+            </div>
+            <div className="space-y-2">
+              {form.events.map((ev, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input type="checkbox" checked={ev.done}
+                    onChange={(e) => { const evs = [...form.events]; evs[i] = { ...evs[i], done: e.target.checked }; set("events", evs); }}
+                    className="flex-shrink-0 accent-red-600" />
+                  <input value={ev.label}
+                    onChange={(e) => { const evs = [...form.events]; evs[i] = { ...evs[i], label: e.target.value }; set("events", evs); }}
+                    placeholder="Event label" className="field-input flex-1 text-[11px] py-1.5" />
+                  <input value={ev.location}
+                    onChange={(e) => { const evs = [...form.events]; evs[i] = { ...evs[i], location: e.target.value }; set("events", evs); }}
+                    placeholder="Location" className="field-input w-28 text-[11px] py-1.5" />
+                  <input value={ev.time_label}
+                    onChange={(e) => { const evs = [...form.events]; evs[i] = { ...evs[i], time_label: e.target.value }; set("events", evs); }}
+                    placeholder="Time" className="field-input w-20 text-[11px] py-1.5" />
+                  <button onClick={() => set("events", form.events.filter((_, j) => j !== i))}
+                    className="text-white/15 hover:text-red-400 transition-colors flex-shrink-0">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </>}
+          {error && (
+            <div className="flex items-center gap-2 text-xs text-red-400">
+              <AlertCircle className="w-3.5 h-3.5" /> {error}
+            </div>
+          )}
+        </div>
+        <div className="p-5 border-t border-white/8 flex items-center justify-between flex-shrink-0">
+          <div className="flex gap-2">
+            {TABS.map((t) => (
+              <button key={t.id} onClick={() => setModalTab(t.id)}
+                className={`w-2 h-2 rounded-full transition-all ${modalTab === t.id ? "bg-blue-500" : "bg-white/15"}`} />
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <button onClick={onClose} className="px-4 py-2 text-xs text-white/40 hover:text-white/70 transition-colors">Cancel</button>
+            <button onClick={handleSave} disabled={loading}
+              className="flex items-center gap-2 px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-xs font-medium transition-all">
+              {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+              {loading ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -756,6 +1171,24 @@ function DashboardTab({ packages, onCreateNew, onRefresh, loading }: {
               </div>
             </div>
           )}
+          {packages.filter((p) => p.status === "Delayed").length > 0 && (
+            <div className="flex items-start gap-3 p-3 bg-red-500/8 border border-red-500/15 rounded-lg">
+              <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-medium text-red-300">Delayed Shipments</div>
+                <div className="text-[10px] text-red-400/60">{packages.filter((p) => p.status === "Delayed").length} shipment(s) currently delayed</div>
+              </div>
+            </div>
+          )}
+          {packages.filter((p) => p.paused).length > 0 && (
+            <div className="flex items-start gap-3 p-3 bg-purple-500/8 border border-purple-500/15 rounded-lg">
+              <PauseCircle className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-medium text-purple-300">Paused Shipments</div>
+                <div className="text-[10px] text-purple-400/60">{packages.filter((p) => p.paused).length} shipment(s) have tracking paused</div>
+              </div>
+            </div>
+          )}
           {packages.length === 0 && (
             <div className="text-xs text-white/20 text-center py-3">No notifications</div>
           )}
@@ -815,6 +1248,7 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewPkg, setViewPkg] = useState<Pkg | null>(null);
+  const [editPkg, setEditPkg] = useState<Pkg | null>(null);
   const [deletingCode, setDeletingCode] = useState<string | null>(null);
 
   const filtered = packages.filter((p) => {
@@ -840,6 +1274,7 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
 
   return (
     <div className="space-y-4">
+      {editPkg && <EditModal pkg={editPkg} token={token} onClose={() => setEditPkg(null)} onUpdated={() => { setEditPkg(null); onRefresh(); showToast("Shipment updated successfully"); }} />}
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <div className="flex items-center gap-2 flex-1">
@@ -851,9 +1286,7 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
           </div>
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
             className="bg-white/4 border border-white/8 rounded-lg px-3 py-2 text-xs text-white/50 outline-none">
-            {["All","Processing","In Transit","Customs Clearance","Out for Delivery","Delivered"].map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
+            {["All", ...ALL_STATUSES].map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
         </div>
         <div className="flex items-center gap-2">
@@ -890,7 +1323,7 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/5">
-                  {["Tracking #","Status","Route","Sender","Receiver","Method","Cost","Subscribers","Actions"].map((h) => (
+                  {["Tracking #","Cargo","Status","Route","Sender","Receiver","Method","Cost","Sub.","Actions"].map((h) => (
                     <th key={h} className="px-4 py-3 text-left text-[9px] text-white/20 uppercase tracking-widest font-normal whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -899,14 +1332,18 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
                 {filtered.map((pkg) => (
                   <tr key={pkg.code} className="hover:bg-white/2 transition-colors group">
                     <td className="px-4 py-3.5">
-                      <code className="text-xs font-mono text-white/70">{pkg.code}</code>
+                      <div className="flex flex-col gap-0.5">
+                        <code className="text-xs font-mono text-white/70">{pkg.code}</code>
+                        {pkg.paused && <span className="text-[8px] text-purple-400 bg-purple-500/10 border border-purple-500/20 rounded px-1">PAUSED</span>}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <CargoBadge type={pkg.cargo_type ?? "road"} />
                     </td>
                     <td className="px-4 py-3.5">
                       <select value={pkg.status} onChange={(e) => handleStatusChange(pkg.code, e.target.value)}
                         className="bg-transparent text-[10px] text-white/50 border border-white/8 rounded-md px-2 py-1 outline-none hover:border-white/20 cursor-pointer">
-                        {["Processing","In Transit","Customs Clearance","Out for Delivery","Delivered"].map((s) => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
+                        {ALL_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </td>
                     <td className="px-4 py-3.5">
@@ -931,12 +1368,16 @@ function ShipmentsTab({ packages, token, loading, onRefresh, onTrack, onCreateNe
                     </td>
                     <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onClick={() => setEditPkg(pkg)}
+                          className="flex items-center gap-1 text-[10px] text-white/30 hover:text-blue-400 transition-colors">
+                          <Pencil className="w-3 h-3" /> Edit
+                        </button>
                         <button onClick={() => setViewPkg(pkg)}
                           className="flex items-center gap-1 text-[10px] text-white/30 hover:text-purple-400 transition-colors">
                           <Eye className="w-3 h-3" /> View
                         </button>
                         <button onClick={() => onTrack(pkg.code)}
-                          className="flex items-center gap-1 text-[10px] text-white/30 hover:text-blue-400 transition-colors">
+                          className="flex items-center gap-1 text-[10px] text-white/30 hover:text-indigo-400 transition-colors">
                           <Globe className="w-3 h-3" /> Track
                         </button>
                         <button onClick={() => handleDelete(pkg.code)} disabled={deletingCode === pkg.code}

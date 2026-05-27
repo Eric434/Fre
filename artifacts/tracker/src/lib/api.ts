@@ -35,6 +35,9 @@ export interface Package {
   shipping_cost: number;
   customs_status: string;
   customs_fee: number;
+  cargo_type: string;
+  notes: string;
+  paused: boolean;
   subscriber_count?: number;
 }
 

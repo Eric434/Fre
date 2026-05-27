@@ -1,0 +1,1 @@
+- [TeslaTrack architecture](teslatrack.md) — full-stack package tracker; key decisions on DB schema, status list, cargo types, map markers.
