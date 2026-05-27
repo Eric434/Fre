@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Lock, Plus, Trash2, LogOut, Package, ChevronRight, Loader2, AlertCircle,
   CheckCircle2, RefreshCw, X, Eye, LayoutDashboard, CreditCard, FileText,
@@ -1055,6 +1055,268 @@ function PaymentsTab({ packages }: { packages: Pkg[] }) {
   );
 }
 
+// ─── Customs document generator ───────────────────────────────────────────────
+
+const CUSTOMS_CSS = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; color: #111; background: #fff; padding: 40px; }
+  .hdr { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #111; padding-bottom: 16px; margin-bottom: 28px; }
+  .logo { font-size: 17px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .logo span { color: #dc2626; }
+  .meta { text-align: right; font-size: 10px; color: #888; line-height: 1.8; }
+  .meta strong { color: #111; font-size: 11px; display: block; margin-bottom: 2px; }
+  .doc-title { font-size: 22px; font-weight: 300; letter-spacing: -0.01em; margin-bottom: 3px; }
+  .doc-sub { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.12em; }
+  .sec { margin-bottom: 26px; }
+  .sec-title { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: #999; border-bottom: 1px solid #e5e5e5; padding-bottom: 5px; margin-bottom: 14px; }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 36px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px 24px; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px 20px; }
+  .fl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 3px; }
+  .fv { font-size: 11px; color: #111; font-weight: 500; min-height: 20px; border-bottom: 1px solid #e0e0e0; padding-bottom: 3px; }
+  .fv-blank { min-height: 24px; border-bottom: 1px solid #ccc; }
+  .party-box { border: 1px solid #e5e5e5; border-radius: 6px; padding: 14px; }
+  .party-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: #dc2626; margin-bottom: 10px; }
+  .blank-line { border-bottom: 1px solid #bbb; min-height: 22px; margin-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 10.5px; }
+  th { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; border-bottom: 2px solid #e5e5e5; border-top: 1px solid #e5e5e5; padding: 7px 8px; text-align: left; background: #fafafa; }
+  td { padding: 10px 8px; border-bottom: 1px solid #ebebeb; vertical-align: top; }
+  .notice { background: #f9f9f9; border-left: 3px solid #dc2626; padding: 10px 14px; font-size: 10px; color: #555; line-height: 1.6; margin-top: 4px; }
+  .sig-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 40px; margin-top: 50px; }
+  .sig-line { border-top: 1px solid #999; padding-top: 6px; font-size: 9px; color: #888; }
+  .ftr { margin-top: 36px; border-top: 1px solid #e5e5e5; padding-top: 14px; display: flex; justify-content: space-between; font-size: 9px; color: #bbb; }
+  .req-badge { display:inline-block; background:#fff0f0; border:1px solid #fca5a5; color:#dc2626; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; padding:2px 7px; border-radius:20px; margin-left:8px; vertical-align:middle; }
+  @media print { body { padding: 24px; } }
+`;
+
+function generateCustomsDoc(ref: string, now: string) {
+  const refNo = `${ref}-${Date.now().toString(36).toUpperCase().slice(-6)}`;
+
+  const hdr = (title: string, sub: string, pages: number) => `
+    <div class="hdr">
+      <div>
+        <div class="logo">Tesla<span>Track</span></div>
+        <div style="font-size:9px;color:#888;margin-top:4px;letter-spacing:0.1em;">PRECISION FLEET LOGISTICS</div>
+      </div>
+      <div class="meta">
+        <strong>${title.toUpperCase()}</strong>
+        Ref: ${refNo}<br/>Issued: ${now}<br/>Pages: ${pages}
+      </div>
+    </div>
+    <div class="sec" style="margin-bottom:10px;">
+      <div class="doc-title">${title}</div>
+      <div class="doc-sub">${sub}</div>
+    </div>`;
+
+  const party = (label: string) => `
+    <div class="party-box">
+      <div class="party-label">${label}</div>
+      <div class="fl">Name / Company</div><div class="blank-line"></div>
+      <div class="fl">Address</div><div class="blank-line"></div>
+      <div class="fl">City, Country, Postal Code</div><div class="blank-line"></div>
+      <div class="fl" style="margin-top:2px">Contact / Email</div><div class="blank-line"></div>
+    </div>`;
+
+  const ftr = () => `
+    <div class="ftr">
+      <span>TeslaTrack · Precision Fleet Logistics · ${refNo}</span>
+      <span>Generated ${now} · Complete all fields before submission</span>
+    </div>`;
+
+  const bodies: Record<string, string> = {
+    INV: `
+      ${hdr("Commercial Invoice", "Value Declaration Form — Required", 1)}
+      <div class="sec">
+        <div class="sec-title">Invoice Details</div>
+        <div class="g3">
+          <div><div class="fl">Invoice No.</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Invoice Date</div><div class="fv">${now}</div></div>
+          <div><div class="fl">Payment Terms</div><div class="fv-blank"></div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Parties</div>
+        <div class="g2">${party("Seller / Exporter")}${party("Buyer / Importer")}</div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Line Items</div>
+        <table>
+          <thead><tr><th>#</th><th>Description of Goods</th><th>HS Code</th><th>Country of Origin</th><th>Qty</th><th>Unit Price</th><th>Total Value</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td colspan="5" style="text-align:right;font-size:9px;color:#999;">TOTAL (USD)</td><td colspan="2" style="font-weight:700;"></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice">I hereby certify that the information on this invoice is true and correct and that the contents and value of this shipment are as stated above.</div>
+      <div class="sig-row">
+        <div class="sig-line">Authorized Signature</div>
+        <div class="sig-line">Title / Position</div>
+        <div class="sig-line">Date</div>
+      </div>
+      ${ftr()}`,
+
+    PKL: `
+      ${hdr("Packing List", "Contents Itemization — Required", 1)}
+      <div class="sec">
+        <div class="sec-title">Shipment Reference</div>
+        <div class="g4">
+          <div><div class="fl">Tracking / Ref No.</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Ship Date</div><div class="fv">${now}</div></div>
+          <div><div class="fl">Carrier</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Delivery Method</div><div class="fv-blank"></div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Parties</div>
+        <div class="g2">${party("Shipper / Exporter")}${party("Consignee / Receiver")}</div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Package Contents</div>
+        <table>
+          <thead><tr><th>Pkg #</th><th>Description of Contents</th><th>Qty</th><th>Unit</th><th>Net Weight</th><th>Gross Weight</th><th>Dimensions (cm)</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td colspan="3" style="font-weight:700;">Totals</td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice">Special handling instructions: Handle with care. Keep upright. Reference the tracking number on all correspondence.</div>
+      <div class="sig-row">
+        <div class="sig-line">Packed By</div>
+        <div class="sig-line">Verified By</div>
+        <div class="sig-line">Date Packed</div>
+      </div>
+      ${ftr()}`,
+
+    COO: `
+      ${hdr("Certificate of Origin", "Country of Manufacture Declaration", 1)}
+      <div class="sec">
+        <div class="sec-title">Exporter / Producer</div>
+        ${party("Exporter / Producer")}
+      </div>
+      <div class="sec">
+        <div class="sec-title">Consignee</div>
+        ${party("Consignee")}
+      </div>
+      <div class="sec">
+        <div class="sec-title">Goods Description</div>
+        <table>
+          <thead><tr><th>#</th><th>Description of Goods</th><th>HS Code</th><th>Country of Origin</th><th>Quantity</th><th>Net Weight</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Declaration</div>
+        <div class="g3">
+          <div><div class="fl">Country of Origin</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Transport Route</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Certificate Date</div><div class="fv">${now}</div></div>
+        </div>
+      </div>
+      <div class="notice">I, the undersigned, declare that the goods described above were produced or manufactured in the stated country of origin in accordance with the rules of origin provisions.</div>
+      <div class="sig-row">
+        <div class="sig-line">Authorized Signatory</div>
+        <div class="sig-line">Chamber of Commerce Stamp</div>
+        <div class="sig-line">Date of Issue</div>
+      </div>
+      ${ftr()}`,
+
+    BOL: `
+      ${hdr("Bill of Lading", "Master Transport Document — Required", 2)}
+      <div class="sec">
+        <div class="sec-title">Parties</div>
+        <div class="g2">${party("Shipper / Exporter")}${party("Consignee / Receiver")}</div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Transport Details</div>
+        <div class="g3">
+          <div><div class="fl">Carrier / Vessel</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Voyage / Flight No.</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Bill of Lading No.</div><div class="fv">${refNo}</div></div>
+          <div><div class="fl">Port of Loading</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Port of Discharge</div><div class="fv-blank"></div></div>
+          <div><div class="fl">ETA</div><div class="fv-blank"></div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Cargo Description</div>
+        <table>
+          <thead><tr><th>Marks &amp; Numbers</th><th>Description of Goods</th><th>No. of Packages</th><th>Gross Weight</th><th>Measurement</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice">Received by the carrier from the shipper in apparent good order and condition unless otherwise noted herein. In accepting this Bill of Lading, the shipper agrees to all terms and conditions. This Bill of Lading is non-negotiable unless consigned "to order".</div>
+      <div class="sig-row">
+        <div class="sig-line">Shipper Signature &amp; Date</div>
+        <div class="sig-line">Carrier Authorized Agent</div>
+        <div class="sig-line">Place &amp; Date of Issue</div>
+      </div>
+      ${ftr()}`,
+
+    IMP: `
+      ${hdr("Import License", "If Applicable — Submit with Customs Filing", 1)}
+      <div class="sec">
+        <div class="sec-title">License Details</div>
+        <div class="g4">
+          <div><div class="fl">License No.</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Issue Date</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Expiry Date</div><div class="fv-blank"></div></div>
+          <div><div class="fl">Issuing Authority</div><div class="fv-blank"></div></div>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-title">Importer Details</div>
+        ${party("Licensed Importer")}
+      </div>
+      <div class="sec">
+        <div class="sec-title">Goods Covered Under This License</div>
+        <table>
+          <thead><tr><th>Description of Goods</th><th>HS Code</th><th>Country of Export</th><th>Quantity Authorized</th><th>Value (USD)</th></tr></thead>
+          <tbody>
+            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="sec">
+        <div class="sec-title">License Conditions</div>
+        <div class="g2">
+          <div><div class="fl">Port of Entry</div><div class="fv-blank"></div></div>
+          <div><div class="fl">End-Use Restriction</div><div class="fv-blank"></div></div>
+        </div>
+      </div>
+      <div class="notice">This license must accompany all shipment documentation. Present to customs authorities upon request. Any unauthorized transfer or modification invalidates this license.</div>
+      <div class="sig-row">
+        <div class="sig-line">Issuing Officer Signature</div>
+        <div class="sig-line">Official Stamp</div>
+        <div class="sig-line">Date of Issue</div>
+      </div>
+      ${ftr()}`,
+  };
+
+  const body = bodies[ref] ?? "";
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><style>${CUSTOMS_CSS}</style></head><body>${body}</body></html>`;
+
+  const win = window.open("", "_blank", "width=860,height=1100");
+  if (!win) return;
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 400);
+}
+
 // ─── Customs Tab ──────────────────────────────────────────────────────────────
 
 function CustomsTab({ packages }: { packages: Pkg[] }) {
@@ -1064,13 +1326,18 @@ function CustomsTab({ packages }: { packages: Pkg[] }) {
   const pending = packages.filter((p) => p.customs_status === "Pending").length;
   const totalFees = packages.reduce((s, p) => s + Number(p.customs_fee || 0), 0);
 
+  const [uploaded, setUploaded] = useState<Record<string, string>>({});
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
   const DOCS = [
-    { name: "Commercial Invoice", desc: "Value declaration form", required: true },
-    { name: "Packing List", desc: "Contents itemization", required: true },
-    { name: "Certificate of Origin", desc: "Country of manufacture", required: false },
-    { name: "Bill of Lading", desc: "Transport document", required: true },
-    { name: "Import License", desc: "If applicable", required: false },
+    { name: "Commercial Invoice",   desc: "Value declaration form",    required: true,  ref: "INV" },
+    { name: "Packing List",         desc: "Contents itemization",      required: true,  ref: "PKL" },
+    { name: "Certificate of Origin",desc: "Country of manufacture",    required: false, ref: "COO" },
+    { name: "Bill of Lading",       desc: "Transport document",        required: true,  ref: "BOL" },
+    { name: "Import License",       desc: "If applicable",             required: false, ref: "IMP" },
   ];
+
+  const now = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 
   return (
     <div className="space-y-5">
@@ -1121,26 +1388,61 @@ function CustomsTab({ packages }: { packages: Pkg[] }) {
 
       {/* Required documents */}
       <div className="bg-[#111] border border-white/6 rounded-2xl p-5">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-1">
           <FileText className="w-4 h-4 text-white/30" />
           <span className="text-sm font-medium text-white/70">Required Customs Documents</span>
         </div>
+        <p className="text-[10px] text-white/25 mb-4 ml-6">Generate a blank fillable template or upload an existing file for each document.</p>
         <div className="space-y-2">
-          {DOCS.map(({ name, desc, required }) => (
-            <div key={name} className="flex items-center justify-between p-3 bg-white/3 rounded-lg border border-white/5">
-              <div className="flex items-center gap-3">
-                <FileText className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
-                <div>
-                  <div className="text-xs text-white/60">{name}</div>
-                  <div className="text-[9px] text-white/25">{desc}</div>
+          {DOCS.map(({ name, desc, required, ref }) => {
+            const file = uploaded[ref];
+            return (
+              <div key={ref} className="flex items-center justify-between p-3.5 bg-white/3 rounded-xl border border-white/5 gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <FileText className="w-3.5 h-3.5 text-white/25 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-white/65 font-medium">{name}</span>
+                      {required && (
+                        <span className="text-[8px] text-red-400/80 bg-red-500/10 border border-red-500/20 px-1.5 py-0.5 rounded-full uppercase tracking-wide font-semibold">Required</span>
+                      )}
+                    </div>
+                    <div className="text-[9px] text-white/25 mt-0.5">{desc}</div>
+                    {file && (
+                      <div className="text-[9px] text-green-400/70 mt-1 flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        {file}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  <button
+                    onClick={() => generateCustomsDoc(ref, now)}
+                    className="text-[10px] text-red-400/70 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 bg-red-500/5 hover:bg-red-500/10 rounded px-2.5 py-1 transition-all"
+                  >
+                    Generate
+                  </button>
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.png,.jpg"
+                    className="hidden"
+                    ref={(el) => { fileRefs.current[ref] = el; }}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) setUploaded((prev) => ({ ...prev, [ref]: f.name }));
+                    }}
+                  />
+                  <button
+                    onClick={() => fileRefs.current[ref]?.click()}
+                    className="text-[10px] text-white/35 hover:text-white/65 border border-white/10 hover:border-white/20 rounded px-2.5 py-1 transition-all"
+                  >
+                    {file ? "Replace" : "Upload"}
+                  </button>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {required && <span className="text-[9px] text-red-400/70 bg-red-500/8 px-1.5 py-0.5 rounded-full">Required</span>}
-                <button className="text-[10px] text-white/25 hover:text-white/60 border border-white/10 rounded px-2 py-0.5 transition-colors">Upload</button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
