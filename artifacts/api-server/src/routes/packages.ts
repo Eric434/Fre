@@ -34,6 +34,9 @@ function pkgRow(pkg: Record<string, unknown>) {
     shipping_cost: parseFloat((pkg.shipping_cost as string) ?? "0"),
     customs_status: pkg.customs_status ?? "Pending",
     customs_fee: parseFloat((pkg.customs_fee as string) ?? "0"),
+    cargo_type: (pkg.cargo_type as string) ?? "road",
+    notes: (pkg.notes as string) ?? "",
+    paused: (pkg.paused as boolean) ?? false,
     created_at: pkg.created_at,
   };
 }
@@ -97,6 +100,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
     sender_name, sender_email, sender_phone, sender_address,
     receiver_name, receiver_email, receiver_phone, receiver_address,
     delivery_method, shipping_cost, customs_status, customs_fee,
+    cargo_type, notes, paused,
   } = b as {
     code: string; status: string; eta: string; origin: string; destination: string;
     carrier: string; weight: string; speed_kph: number; start_progress: number;
@@ -105,6 +109,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
     sender_name?: string; sender_email?: string; sender_phone?: string; sender_address?: string;
     receiver_name?: string; receiver_email?: string; receiver_phone?: string; receiver_address?: string;
     delivery_method?: string; shipping_cost?: number; customs_status?: string; customs_fee?: number;
+    cargo_type?: string; notes?: string; paused?: boolean;
   };
 
   if (!code || !origin || !destination || !route || !Array.isArray(route)) {
@@ -121,8 +126,9 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
         code, status, eta, origin, destination, carrier, weight, speed_kph, start_progress, route,
         sender_name, sender_email, sender_phone, sender_address,
         receiver_name, receiver_email, receiver_phone, receiver_address,
-        delivery_method, shipping_cost, customs_status, customs_fee
-      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)`,
+        delivery_method, shipping_cost, customs_status, customs_fee,
+        cargo_type, notes, paused
+      ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)`,
       [
         upperCode, status ?? "Processing", eta ?? "Estimating…", origin, destination,
         carrier ?? "Tesla Express", weight ?? "—", speed_kph ?? 80, start_progress ?? 0.05,
@@ -130,6 +136,7 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
         sender_name ?? "", sender_email ?? "", sender_phone ?? "", sender_address ?? "",
         receiver_name ?? "", receiver_email ?? "", receiver_phone ?? "", receiver_address ?? "",
         delivery_method ?? "Standard", shipping_cost ?? 0, customs_status ?? "Pending", customs_fee ?? 0,
+        cargo_type ?? "road", notes ?? "", paused ?? false,
       ]
     );
     if (events && events.length > 0) {
@@ -159,10 +166,11 @@ router.post("/admin/packages", requireAdmin, async (req, res) => {
 router.put("/admin/packages/:code", requireAdmin, async (req, res) => {
   const code = (req.params.code as string).toUpperCase();
   const {
-    status, eta, carrier, weight, speed_kph, start_progress, events,
+    status, eta, origin, destination, carrier, weight, speed_kph, start_progress, route, events,
     sender_name, sender_email, sender_phone, sender_address,
     receiver_name, receiver_email, receiver_phone, receiver_address,
     delivery_method, shipping_cost, customs_status, customs_fee,
+    cargo_type, notes, paused,
   } = req.body;
 
   const client = await pool.connect();
@@ -170,17 +178,24 @@ router.put("/admin/packages/:code", requireAdmin, async (req, res) => {
     await client.query("BEGIN");
     await client.query(
       `UPDATE packages SET
-        status=$1, eta=$2, carrier=$3, weight=$4, speed_kph=$5, start_progress=$6,
-        sender_name=$7, sender_email=$8, sender_phone=$9, sender_address=$10,
-        receiver_name=$11, receiver_email=$12, receiver_phone=$13, receiver_address=$14,
-        delivery_method=$15, shipping_cost=$16, customs_status=$17, customs_fee=$18,
+        status=$1, eta=$2, origin=COALESCE($3, origin), destination=COALESCE($4, destination),
+        carrier=$5, weight=$6, speed_kph=$7, start_progress=$8,
+        route=COALESCE($9, route),
+        sender_name=$10, sender_email=$11, sender_phone=$12, sender_address=$13,
+        receiver_name=$14, receiver_email=$15, receiver_phone=$16, receiver_address=$17,
+        delivery_method=$18, shipping_cost=$19, customs_status=$20, customs_fee=$21,
+        cargo_type=$22, notes=$23, paused=$24,
         updated_at=NOW()
-       WHERE code=$19`,
+       WHERE code=$25`,
       [
-        status, eta, carrier, weight, speed_kph, start_progress,
+        status, eta,
+        origin ?? null, destination ?? null,
+        carrier, weight, speed_kph, start_progress,
+        route !== undefined ? JSON.stringify(route) : null,
         sender_name ?? "", sender_email ?? "", sender_phone ?? "", sender_address ?? "",
         receiver_name ?? "", receiver_email ?? "", receiver_phone ?? "", receiver_address ?? "",
         delivery_method ?? "Standard", shipping_cost ?? 0, customs_status ?? "Pending", customs_fee ?? 0,
+        cargo_type ?? "road", notes ?? "", paused ?? false,
         code,
       ]
     );

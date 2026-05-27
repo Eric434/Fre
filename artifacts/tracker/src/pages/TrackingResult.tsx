@@ -5,6 +5,7 @@ import {
   Bell, BellOff, Play, Pause, RotateCcw, Navigation,
   Loader2, AlertCircle, Wifi, ChevronRight, Gauge,
   X, List, FileText, Download, Compass, Lock, CheckSquare,
+  Plane, Ship, Truck,
 } from "lucide-react";
 import { fetchPackage, subscribeToAlerts, notifyDelivered, type Package as Pkg, type FetchPackageResult } from "@/lib/api";
 
@@ -55,7 +56,30 @@ function bearingToCardinal(deg: number): string {
   return dirs[Math.round(deg / 45) % 8];
 }
 
-function vehicleMarkerHtml(moving: boolean, bearing: number): string {
+function vehicleMarkerHtml(moving: boolean, bearing: number, cargoType = "road"): string {
+  const isAir = cargoType === "air";
+  const isSea = cargoType === "sea";
+
+  if (isAir) {
+    const glow = moving
+      ? `<div style="position:absolute;top:6px;left:-4px;width:36px;height:36px;border-radius:50%;background:rgba(59,130,246,0.22);animation:ping-live 1.4s ease-in-out infinite;pointer-events:none;"></div>`
+      : "";
+    return `<div style="position:relative;width:28px;height:44px;transform:rotate(${bearing}deg);transform-origin:14px 22px;">
+      ${glow}
+      <div style="position:absolute;top:8px;left:0;z-index:1;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#1e40af,#1e3a8a);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(59,130,246,0.8);font-size:16px;">✈</div>
+    </div>`;
+  }
+
+  if (isSea) {
+    const glow = moving
+      ? `<div style="position:absolute;top:6px;left:-4px;width:36px;height:36px;border-radius:50%;background:rgba(14,165,233,0.22);animation:ping-live 1.4s ease-in-out infinite;pointer-events:none;"></div>`
+      : "";
+    return `<div style="position:relative;width:28px;height:44px;transform:rotate(${bearing}deg);transform-origin:14px 22px;">
+      ${glow}
+      <div style="position:absolute;top:8px;left:0;z-index:1;width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0e7490,#0c4a6e);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(14,165,233,0.8);font-size:16px;">🚢</div>
+    </div>`;
+  }
+
   const glow = moving
     ? `<div style="position:absolute;inset:-6px;border-radius:50%;background:rgba(220,38,38,0.22);animation:ping-live 1.4s ease-in-out infinite;pointer-events:none;"></div>
        <div style="position:absolute;inset:-2px;border-radius:50%;background:rgba(220,38,38,0.10);pointer-events:none;"></div>`
@@ -84,21 +108,35 @@ function vehicleMarkerHtml(moving: boolean, bearing: number): string {
 // ─── Milestone data ───────────────────────────────────────────────────────────
 
 const MILESTONES = [
-  { label: "Booking Confirmed", sub: "Shipment registered" },
-  { label: "Picked Up", sub: "Carrier collected from origin" },
-  { label: "In Transit", sub: "En route to destination" },
-  { label: "Customs Clearance", sub: "Documentation verified" },
-  { label: "Out for Delivery", sub: "Last-mile dispatch" },
-  { label: "Delivered", sub: "Shipment complete" },
+  { label: "Booking Confirmed",  sub: "Shipment registered" },
+  { label: "Processing",         sub: "Carrier preparing shipment" },
+  { label: "In Transit",         sub: "En route to destination" },
+  { label: "Customs Clearance",  sub: "Documentation verified" },
+  { label: "Out for Delivery",   sub: "Last-mile dispatch" },
+  { label: "Delivered",          sub: "Shipment complete" },
 ];
 
 function getMilestoneIndex(status: string): number {
-  if (status === "Delivered") return 5;
-  if (status === "Out for Delivery") return 4;
-  if (status === "Customs Clearance") return 3;
-  if (status === "In Transit") return 2;
-  if (status === "Picked Up" || status === "Dispatched") return 1;
+  const s = status.toLowerCase();
+  if (s === "delivered")                                   return 5;
+  if (s === "out for delivery")                            return 4;
+  if (s === "customs clearance")                           return 3;
+  if (s === "in transit" || s === "at airport" || s === "at seaport") return 2;
+  if (s === "processing" || s === "picked up" || s === "dispatched")  return 1;
+  if (s === "delayed" || s === "on hold")                  return 2;
   return 0;
+}
+
+function cargoIcon(cargoType: string, cls = "w-3.5 h-3.5") {
+  if (cargoType === "air") return <Plane className={cls} />;
+  if (cargoType === "sea") return <Ship className={cls} />;
+  return <Truck className={cls} />;
+}
+
+function cargoLabel(cargoType: string) {
+  if (cargoType === "air") return "Air Cargo";
+  if (cargoType === "sea") return "Sea Freight";
+  return "Ground Shipping";
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -235,6 +273,14 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, bearing, getPro
           <div className="text-[9px] text-white/25 uppercase tracking-widest mb-1">Estimated Arrival</div>
           <div className="text-sm font-semibold text-white/90">{pkg.eta}</div>
         </div>
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className={`${pkg.cargo_type === "air" ? "text-sky-400" : pkg.cargo_type === "sea" ? "text-cyan-400" : "text-white/30"}`}>
+            {cargoIcon(pkg.cargo_type ?? "road", "w-3 h-3")}
+          </span>
+          <span className={`text-[9px] font-medium ${pkg.cargo_type === "air" ? "text-sky-400" : pkg.cargo_type === "sea" ? "text-cyan-400" : "text-white/30"}`}>
+            {cargoLabel(pkg.cargo_type ?? "road")}
+          </span>
+        </div>
         <div className="flex items-center gap-2 text-[10px] text-white/35 mb-4 flex-wrap">
           <MapPin className="w-2.5 h-2.5 text-white/20 flex-shrink-0" />
           <span className="truncate max-w-[90px]">{pkg.origin}</span>
@@ -332,6 +378,7 @@ function TimelinePanel({ pkg, code, progress, simSpeed, secsAgo, bearing, getPro
           { label: "Code", value: code },
           { label: "Weight", value: pkg.weight },
           { label: "Status", value: pkg.status },
+          { label: "Mode", value: cargoLabel(pkg.cargo_type ?? "road") },
         ].map(({ label, value }) => (
           <div key={label}>
             <div className="text-[9px] text-white/20 uppercase tracking-wider mb-0.5">{label}</div>
@@ -1021,7 +1068,7 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     setBearing(b);
     const isMoving = playing && posIdx < TOTAL - 1;
     vehicleMarkerRef.current?.setIcon(
-      L.divIcon({ html: vehicleMarkerHtml(isMoving, b), className: "", iconSize: [28, 44], iconAnchor: [14, 22] })
+      L.divIcon({ html: vehicleMarkerHtml(isMoving, b, pkg.cargo_type ?? "road"), className: "", iconSize: [28, 44], iconAnchor: [14, 22] })
     );
   }, [posIdx, playing]);
 
@@ -1085,7 +1132,7 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
 
     vehicleMarkerRef.current = L.marker(initPos, {
       icon: L.divIcon({
-        html: vehicleMarkerHtml(pkg.status !== "Delivered", initBearing),
+        html: vehicleMarkerHtml(pkg.status !== "Delivered", initBearing, pkg.cargo_type ?? "road"),
         className: "", iconSize: [28, 44], iconAnchor: [14, 22],
       }),
       zIndexOffset: 1000,
