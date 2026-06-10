@@ -145,18 +145,14 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string; i
 // ─── Login screen ─────────────────────────────────────────────────────────────
 
 function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
-  const [pw, setPw] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async () => {
-    if (!pw) return;
-    setLoading(true); setError("");
-    const ok = await adminLogin(pw);
-    setLoading(false);
-    if (ok) onLogin(pw);
-    else setError("Invalid password");
-  };
+  useEffect(() => {
+    // Auto-login without password
+    const handleAutoLogin = async () => {
+      const ok = await adminLogin("");
+      if (ok) onLogin("admin-token");
+    };
+    handleAutoLogin();
+  }, [onLogin]);
 
   return (
     <div className="min-h-dvh bg-[#0a0a0a] flex items-center justify-center px-4">
@@ -169,32 +165,14 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
             </span>
           </div>
           <h1 className="text-xl font-semibold text-white/90 mb-1">Admin Portal</h1>
-          <p className="text-xs text-white/30">Secure access — enter your admin password</p>
+          <p className="text-xs text-white/30">Loading admin dashboard...</p>
         </div>
         <div className="bg-[#111] border border-white/8 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 text-[10px] text-green-400/70 bg-green-500/8 border border-green-500/15 rounded-lg px-3 py-2">
-            <Shield className="w-3 h-3 flex-shrink-0" /> SSL Encrypted · Secure Login
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-red-500" />
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-            <input type="password" value={pw}
-              onChange={(e) => { setPw(e.target.value); setError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Admin password"
-              className="w-full bg-white/3 border border-white/8 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-red-600/40" />
-          </div>
-          {error && (
-            <div className="flex items-center gap-2 text-xs text-red-400">
-              <AlertCircle className="w-3.5 h-3.5" /> {error}
-            </div>
-          )}
-          <button onClick={handleSubmit} disabled={!pw || loading}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white text-sm font-medium transition-all">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-          <p className="text-center text-[10px] text-white/15">
-            Protected by admin authentication
+          <p className="text-center text-[10px] text-white/30">
+            Initializing admin session
           </p>
         </div>
       </div>
