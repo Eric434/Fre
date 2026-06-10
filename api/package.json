@@ -1,0 +1,17 @@
+{
+  "name": "teslatrack-api",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "cors": "^2",
+    "express": "^5",
+    "pg": "^8",
+    "resend": "^6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2",
+    "@types/express": "^5",
+    "@types/node": "^22",
+    "@types/pg": "^8"
+  }
+}

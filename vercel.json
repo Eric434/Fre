@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter @workspace/tracker run build:vercel",
+  "outputDirectory": "artifacts/tracker/dist",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
