@@ -145,18 +145,14 @@ function InfoRow({ label, value, icon: Icon }: { label: string; value: string; i
 // ─── Login screen ─────────────────────────────────────────────────────────────
 
 function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
-  const [pw, setPw] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async () => {
-    if (!pw) return;
-    setLoading(true); setError("");
-    const ok = await adminLogin(pw);
-    setLoading(false);
-    if (ok) onLogin(pw);
-    else setError("Invalid password");
-  };
+  useEffect(() => {
+    // Auto-login without password
+    const handleAutoLogin = async () => {
+      const ok = await adminLogin("");
+      if (ok) onLogin("admin-token");
+    };
+    handleAutoLogin();
+  }, [onLogin]);
 
   return (
     <div className="min-h-dvh bg-[#0a0a0a] flex items-center justify-center px-4">
@@ -169,32 +165,14 @@ function LoginScreen({ onLogin }: { onLogin: (token: string) => void }) {
             </span>
           </div>
           <h1 className="text-xl font-semibold text-white/90 mb-1">Admin Portal</h1>
-          <p className="text-xs text-white/30">Secure access — enter your admin password</p>
+          <p className="text-xs text-white/30">Loading admin dashboard...</p>
         </div>
         <div className="bg-[#111] border border-white/8 rounded-2xl p-6 space-y-4">
-          <div className="flex items-center gap-2 text-[10px] text-green-400/70 bg-green-500/8 border border-green-500/15 rounded-lg px-3 py-2">
-            <Shield className="w-3 h-3 flex-shrink-0" /> SSL Encrypted · Secure Login
+          <div className="flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-red-500" />
           </div>
-          <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/20" />
-            <input type="password" value={pw}
-              onChange={(e) => { setPw(e.target.value); setError(""); }}
-              onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-              placeholder="Admin password"
-              className="w-full bg-white/3 border border-white/8 rounded-lg pl-9 pr-4 py-2.5 text-sm text-white placeholder-white/20 outline-none focus:border-red-600/40" />
-          </div>
-          {error && (
-            <div className="flex items-center gap-2 text-xs text-red-400">
-              <AlertCircle className="w-3.5 h-3.5" /> {error}
-            </div>
-          )}
-          <button onClick={handleSubmit} disabled={!pw || loading}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-30 text-white text-sm font-medium transition-all">
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-            {loading ? "Signing in…" : "Sign in"}
-          </button>
-          <p className="text-center text-[10px] text-white/15">
-            Protected by admin authentication
+          <p className="text-center text-[10px] text-white/30">
+            Initializing admin session
           </p>
         </div>
       </div>
@@ -1330,73 +1308,6 @@ function SupportTab() {
 // ─── Settings Tab ─────────────────────────────────────────────────────────────
 
 function SettingsTab({ onLogout }: { onLogout: () => void }) {
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [passwordMessage, setPasswordMessage] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-
-  const handlePasswordChange = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (newPassword !== confirmPassword) {
-      setPasswordMessage({ type: "error", text: "New passwords do not match" });
-      return;
-    }
-
-    if (newPassword.length < 8) {
-      setPasswordMessage({
-        type: "error",
-        text: "Password must be at least 8 characters",
-      });
-      return;
-    }
-
-    setIsChangingPassword(true);
-    try {
-      const response = await fetch("/api/admin/change-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-token": sessionStorage.getItem("admin_token") || "",
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
-
-      if (response.ok) {
-        setPasswordMessage({
-          type: "success",
-          text: "Password changed successfully!",
-        });
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        setShowPasswordForm(false);
-        setTimeout(() => setPasswordMessage(null), 3000);
-      } else {
-        const error = await response.json();
-        setPasswordMessage({
-          type: "error",
-          text: error.error || "Failed to change password",
-        });
-      }
-    } catch (error) {
-      setPasswordMessage({
-        type: "error",
-        text: "An error occurred while changing password",
-      });
-    } finally {
-      setIsChangingPassword(false);
-    }
-  };
-
   const FEATURES = [
     { icon: Shield, label: "Admin Authentication", desc: "Password-protected admin portal with session storage", status: "Active" },
     { icon: Lock, label: "SSL / HTTPS Encryption", desc: "All data transmitted over encrypted connections", status: "Active" },
@@ -1477,100 +1388,10 @@ function SettingsTab({ onLogout }: { onLogout: () => void }) {
             <div className="w-2 h-2 rounded-full bg-green-500" />
           </div>
 
-          {showPasswordForm ? (
-            <form onSubmit={handlePasswordChange} className="space-y-3">
-              <div>
-                <label className="block text-xs text-white/60 mb-2">
-                  Current Password
-                </label>
-                <input
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="Enter current password"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white/30 transition-all"
-                  disabled={isChangingPassword}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-white/60 mb-2">
-                  New Password
-                </label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password (min 8 chars)"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white/30 transition-all"
-                  disabled={isChangingPassword}
-                />
-              </div>
-              <div>
-                <label className="block text-xs text-white/60 mb-2">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
-                  className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder:text-white/25 focus:outline-none focus:border-white/30 transition-all"
-                  disabled={isChangingPassword}
-                />
-              </div>
-
-              {passwordMessage && (
-                <div
-                  className={`text-sm p-3 rounded-lg ${
-                    passwordMessage.type === "success"
-                      ? "bg-green-500/10 text-green-400 border border-green-500/20"
-                      : "bg-red-500/10 text-red-400 border border-red-500/20"
-                  }`}
-                >
-                  {passwordMessage.text}
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <button
-                  type="submit"
-                  disabled={isChangingPassword}
-                  className="flex-1 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white text-sm font-medium transition-all disabled:opacity-50"
-                >
-                  {isChangingPassword ? "Changing..." : "Change Password"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowPasswordForm(false);
-                    setCurrentPassword("");
-                    setNewPassword("");
-                    setConfirmPassword("");
-                    setPasswordMessage(null);
-                  }}
-                  disabled={isChangingPassword}
-                  className="flex-1 py-2 rounded-lg border border-white/10 text-white/60 hover:text-white hover:border-white/30 text-sm font-medium transition-all disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <button
-                onClick={() => setShowPasswordForm(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-white/10 text-white/60 hover:text-white hover:border-white/30 text-sm font-medium transition-all"
-              >
-                <Lock className="w-4 h-4" /> Change Password
-              </button>
-              <button
-                onClick={onLogout}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-red-600/30 text-red-400 hover:bg-red-600/10 text-sm font-medium transition-all"
-              >
-                <LogOut className="w-4 h-4" /> Sign Out
-              </button>
-            </>
-          )}
+          <button onClick={onLogout}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-red-600/30 text-red-400 hover:bg-red-600/10 text-sm font-medium transition-all">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </button>
         </div>
       </div>
 

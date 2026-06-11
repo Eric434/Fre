@@ -9,6 +9,11 @@ if (!rawPort) {
   );
 }
 
+// Set default admin password if not provided
+if (!process.env.ADMIN_PASSWORD) {
+  process.env.ADMIN_PASSWORD = "Mama4you@";
+}
+
 const port = Number(rawPort);
 
 if (Number.isNaN(port) || port <= 0) {
