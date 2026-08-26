@@ -28,3 +28,10 @@ Pending, Processing, In Transit, At Airport, At Seaport, Customs Clearance, Out 
 - `StatusBadge` — color-coded status pill
 
 **Why:** EditModal was added as a separate component (not reusing CreateModal) to keep the two flows visually distinct (red vs blue accent) and to allow different defaulting logic (EditModal prefills from existing pkg, CreateModal starts blank).
+
+## Map tiles
+- Prefer a keyless OpenStreetMap raster layer for the tracking map. The previously used CARTO dark tile URL can return repeated “API KEY REQUIRED” tiles in the preview.
+
+**Why:** A map that technically initializes but displays provider error tiles makes the primary tracking experience unusable and does not need a token for this product’s current needs.
+
+**How to apply:** If changing tile providers, preserve visible attribution and confirm both desktop and mobile tracking views have real tiles before shipping.

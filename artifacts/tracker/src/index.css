@@ -122,7 +122,7 @@
   pointer-events: none;
 }
 
-/* Leaflet dark map — CartoDB dark_all tiles, no filter needed */
+/* Leaflet map */
 .leaflet-container { background: #080808 !important; font-family: 'Inter', sans-serif; }
 .leaflet-control-zoom a {
   background: #141414 !important;

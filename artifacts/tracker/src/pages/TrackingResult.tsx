@@ -1089,18 +1089,21 @@ function TrackingView({ pkg, code, onBack, onAdmin }: { pkg: Pkg; code: string; 
     const initPos = fullPath[startIdx];
     const map = L.map(mapRef.current, { center: initPos, zoom: 9, zoomControl: false });
 
+    // Use OpenStreetMap's public raster tiles so the tracking map works
+    // without a third-party map token or a paid tile subscription.
     L.tileLayer(
-      "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
-        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
-        subdomains: "abcd",
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19,
       }
     ).addTo(map);
 
-    // Force dark background while tiles load
+    // Keep the map aligned with the app's dark visual treatment.
     const pane = map.getPane("tilePane");
-    if (pane) pane.style.filter = "brightness(0.92) saturate(0.8)";
+    if (pane) {
+      pane.style.filter = "invert(1) hue-rotate(180deg) brightness(0.78) contrast(1.08) saturate(0.72)";
+    }
 
     L.control.zoom({ position: "bottomright" }).addTo(map);
 
