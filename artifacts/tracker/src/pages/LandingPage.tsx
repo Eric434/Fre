@@ -145,7 +145,7 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
 
         {/* Search bar */}
         <div className="relative z-10 w-full max-w-xl animate-slide-up" style={{ animationDelay: "0.3s" }}>
-          <div className={`flex items-center gap-3 bg-[#111]/90 border rounded-xl px-4 py-3.5 transition-all duration-300 backdrop-blur ${
+          <div className={`flex items-center gap-2 md:gap-3 bg-[#111]/90 border rounded-xl px-3 md:px-4 py-3.5 transition-all duration-300 backdrop-blur ${
             focused ? "border-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.12)]" : "border-white/10"
           }`}>
             <Search className="w-4 h-4 text-white/30 flex-shrink-0" />
@@ -154,15 +154,15 @@ export default function LandingPage({ onTrack, onAdmin }: Props) {
               onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
               placeholder="Enter your tracking code"
-              className="flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-mono" />
+              className="min-w-0 flex-1 bg-transparent text-sm text-white placeholder-white/25 outline-none font-mono" />
             <button onClick={handleSubmit} disabled={!query.trim()}
-              className="flex-shrink-0 px-5 py-2 rounded-lg text-sm font-medium transition-all bg-red-600 hover:bg-red-500 text-white disabled:opacity-30 disabled:cursor-not-allowed">
+              className="flex-shrink-0 px-4 md:px-5 py-2 rounded-lg text-sm font-medium transition-all bg-red-600 hover:bg-red-500 text-white disabled:opacity-30 disabled:cursor-not-allowed">
               Track
             </button>
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 animate-pulse-live">
+        <div className="hidden sm:flex absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex-col items-center gap-2 animate-pulse-live">
           <span className="text-[9px] text-white/20 tracking-widest uppercase">Scroll</span>
           <div className="w-px h-10 bg-gradient-to-b from-white/20 to-transparent" />
         </div>
