@@ -35,3 +35,10 @@ Pending, Processing, In Transit, At Airport, At Seaport, Customs Clearance, Out 
 **Why:** A map that technically initializes but displays provider error tiles makes the primary tracking experience unusable and does not need a token for this product’s current needs.
 
 **How to apply:** If changing tile providers, preserve visible attribution and confirm both desktop and mobile tracking views have real tiles before shipping.
+
+## Vercel deployment
+- Keep standalone Vercel API runtime packages available from the workspace root, and declare the API package as ESM.
+
+**Why:** Vercel builds the root project and can otherwise fail to resolve API dependencies or emit module-reparsing warnings even while the Replit workspace passes.
+
+**How to apply:** When adding serverless entrypoints outside the workspace package globs, verify root dependency resolution and run an import check against the entrypoint.
