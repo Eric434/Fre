@@ -49,3 +49,10 @@ Pending, Processing, In Transit, At Airport, At Seaport, Customs Clearance, Out 
 **Why:** Preview captures and slower chunk loads can happen before a delayed opacity animation completes, especially after route-level code splitting.
 
 **How to apply:** Prefer transform-only entrance motion for the primary landing content, or provide a visible loading state that cannot be mistaken for a failed page.
+
+## Mobile target
+- Treat 360×800 through 390×844 as a primary supported viewport range for the tracker.
+
+**Why:** This range represents the intended mid-range Android experience and exposes overlap and cramped controls that desktop checks miss.
+
+**How to apply:** Recheck the landing search form, tracking map controls, and admin navigation at both endpoints after responsive changes.
