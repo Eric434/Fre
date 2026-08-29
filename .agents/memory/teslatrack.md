@@ -42,3 +42,10 @@ Pending, Processing, In Transit, At Airport, At Seaport, Customs Clearance, Out 
 **Why:** Vercel builds the root project and can otherwise fail to resolve API dependencies or emit module-reparsing warnings even while the Replit workspace passes.
 
 **How to apply:** When adding serverless entrypoints outside the workspace package globs, verify root dependency resolution and run an import check against the entrypoint.
+
+## Initial page rendering
+- Keep critical hero content visible during entrance motion; opacity-based entry animations can make a freshly loaded preview look like a broken blank page.
+
+**Why:** Preview captures and slower chunk loads can happen before a delayed opacity animation completes, especially after route-level code splitting.
+
+**How to apply:** Prefer transform-only entrance motion for the primary landing content, or provide a visible loading state that cannot be mistaken for a failed page.
