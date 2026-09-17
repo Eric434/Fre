@@ -1,0 +1,27 @@
+export function serializePackage(pkg: Record<string, unknown>) {
+  return {
+    code: pkg.code,
+    status: pkg.status,
+    eta: pkg.eta,
+    origin: pkg.origin,
+    destination: pkg.destination,
+    carrier: pkg.carrier,
+    weight: pkg.weight,
+    speed_kph: pkg.speed_kph,
+    start_progress: parseFloat(pkg.start_progress as string),
+    route: pkg.route,
+    sender_name: pkg.sender_name ?? "",
+    sender_email: pkg.sender_email ?? "",
+    sender_phone: pkg.sender_phone ?? "",
+    sender_address: pkg.sender_address ?? "",
+    receiver_name: pkg.receiver_name ?? "",
+    receiver_email: pkg.receiver_email ?? "",
+    receiver_phone: pkg.receiver_phone ?? "",
+    receiver_address: pkg.receiver_address ?? "",
+    delivery_method: pkg.delivery_method ?? "Standard",
+    shipping_cost: parseFloat((pkg.shipping_cost as string) ?? "0"),
+    customs_status: pkg.customs_status ?? "Pending",
+    customs_fee: parseFloat((pkg.customs_fee as string) ?? "0"),
+    created_at: pkg.created_at,
+  };
+}

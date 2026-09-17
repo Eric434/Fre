@@ -1,0 +1,6 @@
+[build]
+  command = "pnpm --filter @workspace/tracker run build"
+  publish = "artifacts/tracker/dist/public"
+
+[functions]
+  directory = "netlify/functions"
